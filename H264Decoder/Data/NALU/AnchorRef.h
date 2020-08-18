@@ -3,17 +3,17 @@
 
 struct AnchorRef
 {
-    std::uint8_t numAnchorRefsl0 = 0;
+    std::uint8_t numAnchorRefsL0 = 0;
     std::vector<std::uint8_t> anchorRefl0;
 
-    std::uint8_t numAnchorRefsl1 = 0;
+    std::uint8_t numAnchorRefsL1 = 0;
     std::vector<std::uint8_t> anchorRefl1;
 
     AnchorRef() = default;
     explicit AnchorRef(BitstreamReader& reader)
     {
-        ReadAnchorRef(reader, numAnchorRefsl0, anchorRefl0);
-        ReadAnchorRef(reader, numAnchorRefsl1, anchorRefl1);
+        ReadAnchorRef(reader, numAnchorRefsL0, anchorRefl0);
+        ReadAnchorRef(reader, numAnchorRefsL1, anchorRefl1);
     }
 
 private:

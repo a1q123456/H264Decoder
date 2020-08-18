@@ -59,6 +59,7 @@
 #include <Data\NALU\SEI\MasteringDisplayColourVolume.h>
 #include <Data\NALU\SEI\ReservedSEIMessage.h>
 #include <Data\NALU\SEI\SEIType.h>
+#include <Data\RealValue.h>
 
 struct SubPicScalableLayer
 {
@@ -247,7 +248,7 @@ struct ScalableNesting
         }
         do
         {
-            // sei message
+            // TODO sei message
         } while (reader.moreData());
     }
 };
@@ -444,6 +445,286 @@ struct TlSwitchingPoint
 
 struct ParallelDecodingInfo
 {
+    std::uint32_t seqParameterSetId = 0;
+    std::vector<std::vector<std::uint32_t>> pdiInitDelayAnchorMinus2L0;
+    std::vector<std::vector<std::uint32_t>> pdiInitDelayAnchorMinus2L1;
+
+    std::vector<std::vector<std::uint32_t>> pdiInitDelayNonAnchorMinus2L0;
+    std::vector<std::vector<std::uint32_t>> pdiInitDelayNonAnchorMinus2L1;
+
+    ParallelDecodingInfo() = default;
+    explicit ParallelDecodingInfo(DecodingContext& dc, BitstreamReader& reader, NALUnit& currentNalUint) 
+    {
+        seqParameterSetId = reader.readExpoGlomb();
+        auto&& subsetSps = dc.findSubsetSPS(seqParameterSetId);
+        pdiInitDelayAnchorMinus2L0.resize(subsetSps.seqParameterSetMVCExtension.numViewsMinus1);
+        pdiInitDelayAnchorMinus2L1.resize(subsetSps.seqParameterSetMVCExtension.numViewsMinus1);
+        pdiInitDelayNonAnchorMinus2L0.resize(subsetSps.seqParameterSetMVCExtension.numViewsMinus1);
+        pdiInitDelayNonAnchorMinus2L1.resize(subsetSps.seqParameterSetMVCExtension.numViewsMinus1);
+        for (auto i = 1; i <= subsetSps.seqParameterSetMVCExtension.numViewsMinus1; i++)
+        {
+            if (currentNalUint.nalUnitHeaderMvcExtension.anchorPicFlag)
+            {
+                pdiInitDelayAnchorMinus2L0[i].resize(subsetSps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL0);
+                for (auto j = 0; j <= subsetSps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL0; j++)
+                {
+                    pdiInitDelayAnchorMinus2L0[i][j] = reader.readExpoGlomb();
+                }
+                pdiInitDelayAnchorMinus2L1[i].resize(subsetSps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL1);
+                for (auto j = 0; j <= subsetSps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL0; j++)
+                {
+                    pdiInitDelayAnchorMinus2L1[i][j] = reader.readExpoGlomb();
+                }
+            }
+            else
+            {
+                pdiInitDelayNonAnchorMinus2L0[i].resize(subsetSps.seqParameterSetMVCExtension.nonAnchorRefs[i].numAnchorRefsL0);
+                for (auto j = 0; j <= subsetSps.seqParameterSetMVCExtension.nonAnchorRefs[i].numAnchorRefsL0; j++)
+                {
+                    pdiInitDelayNonAnchorMinus2L0[i][j] = reader.readExpoGlomb();
+                }
+                pdiInitDelayNonAnchorMinus2L1[i].resize(subsetSps.seqParameterSetMVCExtension.nonAnchorRefs[i].numAnchorRefsL1);
+                for (auto j = 0; j <= subsetSps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL0; j++)
+                {
+                    pdiInitDelayNonAnchorMinus2L1[i][j] = reader.readExpoGlomb();
+                }
+            }
+        }
+    }
+};
+
+struct MvcScalableNesting
+{
+    bool operationPointFlag = false;
+    bool allViewComponentsInAuFlag = false;
+    std::uint32_t numViewComponentsMinus1;
+
+    std::vector<std::uint16_t> seiViewId;
+
+    std::uint32_t numViewComponentsOpMinus1 = 0;
+    std::vector<std::uint16_t> seiOpViewId;
+    std::uint8_t seiOpTemporalId = 0;
+
+    std::uint8_t seiNestingZeroBit = 0;
+    SEIMessage seiMessage;
+
+    MvcScalableNesting() = default;
+    explicit MvcScalableNesting(BitstreamReader& reader)
+    {
+        operationPointFlag = reader.readBits<bool, 1>();
+        if (!operationPointFlag)
+        {
+            allViewComponentsInAuFlag = reader.readBits<bool, 1>();
+            if (!allViewComponentsInAuFlag)
+            {
+                numViewComponentsMinus1 = reader.readExpoGlomb();
+                for (auto i = 0; i <= numViewComponentsMinus1; i++)
+                {
+                    seiViewId.emplace_back(reader.readBits<std::uint16_t, 10>());
+                }
+            }
+        }
+        else
+        {
+            numViewComponentsOpMinus1 = reader.readExpoGlomb();
+            for (auto i = 0; i <= numViewComponentsOpMinus1; i++)
+            {
+                seiOpViewId.emplace_back(reader.readBits<std::uint16_t, 10>());
+            }
+            seiOpTemporalId = reader.readBits<std::uint8_t, 3>();
+        }
+        while (!reader.byteAligned())
+        {
+            reader.readBits<std::uint8_t, 1>();
+        }
+        // TODO sei message
+    }
+};
+
+struct ViewScalabilityInfo
+{
+    struct OperationPoint
+    {
+        std::uint32_t operationPointId = 0;
+        std::uint8_t priorityId = 0;
+        std::uint8_t   temporalId = 0;
+        std::uint32_t numTargetOutputViewsMinus1 = 0;
+        std::vector<std::uint32_t> viewId;
+
+        bool profileLevelInfoPresentFlag = false;
+        bool bitrateInfoPresentFlag = false;
+        bool frmRateInfoPresentFlag = false;
+        bool viewDependencyInfoPresentFlag = false;
+        bool parameterSetsInfoPresentFlag = false;
+        bool bitstreamRestrictionInfoPresentFlag = false;
+        std::uint32_t opProfileLevelIdc = 0;
+        std::uint16_t avgBitrate = 0;
+        std::uint16_t maxBitrate = 0;
+        std::uint16_t maxBitrateCalcWindow = 0;
+
+        std::uint8_t constantFrmRateIdc = 0;
+        std::uint16_t avgFrmRate;
+        
+        std::uint32_t numDirectlyDependentViews = 0;
+        std::vector<std::uint32_t> directlyDependentViewId;
+        
+        std::uint32_t viewDependencyInfoSrcOpId = 0;
+
+        std::uint32_t numSeqParameterSets = 0;
+        std::vector<std::uint32_t> seqParameterSetIdDelta;
+
+        std::uint32_t numSubsetSeqParameterSets = 0;
+        std::vector<std::uint32_t> subsetSeqParameterSetIdDelta;
+        
+        std::uint32_t numPicParameterSetMinus1 = 0;
+        std::vector<std::uint32_t> picParameterSetIdDelta;
+
+        std::uint32_t parameterSetsInfoSrcOpId = 0;
+        bool motionVectorsOverPicBoundariesFlag = false;
+        std::uint32_t maxBytesPerPicDenom = 0;
+        std::uint32_t maxBitsPerMbDenom = 0;
+        std::uint32_t log2MaxMvLengthHorizontal = 0;
+        std::uint32_t log2MaxMvLengthVertical = 0;
+        std::uint32_t maxNumReorderFrames = 0;
+        std::uint32_t maxDecFrameBuffering = 0;
+
+        OperationPoint() = default;
+        explicit OperationPoint(BitstreamReader& reader)
+        {
+            operationPointId = reader.readExpoGlomb();
+            priorityId = reader.readBits<std::uint8_t, 5>();
+            temporalId = reader.readBits<std::uint8_t, 3>();
+            numTargetOutputViewsMinus1 = reader.readExpoGlomb();
+            for (auto j = 0; j <= numTargetOutputViewsMinus1; j++)
+            {
+                viewId.emplace_back(reader.readExpoGlomb());
+            }
+            profileLevelInfoPresentFlag = reader.readBits<bool, 1>();
+            bitrateInfoPresentFlag = reader.readBits<bool, 1>();
+            frmRateInfoPresentFlag = reader.readBits<bool, 1>();
+            if (!numTargetOutputViewsMinus1)
+            {
+                viewDependencyInfoPresentFlag = reader.readBits<bool, 1>();
+            }
+            parameterSetsInfoPresentFlag = reader.readBits<bool, 1>();
+            bitstreamRestrictionInfoPresentFlag = reader.readBits<bool, 1>();
+            if (profileLevelInfoPresentFlag)
+            {
+                opProfileLevelIdc = reader.readBits<std::uint32_t, 24>();
+            }
+            if (bitrateInfoPresentFlag)
+            {
+                avgBitrate = reader.readBits<std::uint16_t, 16>();
+                maxBitrate = reader.readBits<std::uint16_t, 16>();
+                maxBitrateCalcWindow = reader.readBits<std::uint16_t, 16>();
+            }
+            if (frmRateInfoPresentFlag)
+            {
+                constantFrmRateIdc = reader.readBits<std::uint8_t, 2>();
+                avgFrmRate = reader.readBits<std::uint16_t, 16>();
+            }
+            if (viewDependencyInfoPresentFlag)
+            {
+                numDirectlyDependentViews = reader.readExpoGlomb();
+                for (auto j = 0; j < numDirectlyDependentViews; j++)
+                {
+                    directlyDependentViewId.emplace_back(reader.readExpoGlomb());
+                }
+            }
+            else
+            {
+                viewDependencyInfoSrcOpId = reader.readExpoGlomb();
+            }
+            if (parameterSetsInfoPresentFlag)
+            {
+                numSeqParameterSets = reader.readExpoGlomb();
+                for (auto j = 0; j < numSeqParameterSets; j++)
+                {
+                    seqParameterSetIdDelta.emplace_back(reader.readExpoGlomb());
+                }
+                numSubsetSeqParameterSets = reader.readExpoGlomb();
+                for (auto j = 0; j < numSubsetSeqParameterSets; j++)
+                {
+                    subsetSeqParameterSetIdDelta.emplace_back(reader.readExpoGlomb());
+                }
+                numPicParameterSetMinus1 = reader.readExpoGlomb();
+                for (auto j = 0; j <= numPicParameterSetMinus1; j++)
+                {
+                    picParameterSetIdDelta.emplace_back(reader.readExpoGlomb());
+                }
+            }
+            else
+            {
+                parameterSetsInfoSrcOpId = reader.readExpoGlomb();
+            }
+            if (bitstreamRestrictionInfoPresentFlag)
+            {
+                motionVectorsOverPicBoundariesFlag = reader.readBits<bool, 1>();
+                maxBytesPerPicDenom = reader.readExpoGlomb();
+                maxBitsPerMbDenom = reader.readExpoGlomb();
+                log2MaxMvLengthHorizontal = reader.readExpoGlomb();
+                log2MaxMvLengthVertical = reader.readExpoGlomb();
+                maxNumReorderFrames = reader.readExpoGlomb();
+                maxDecFrameBuffering = reader.readExpoGlomb();
+            }
+        }
+
+    };
+    std::uint32_t numOperationPointsMinus1 = 0;
+    std::vector<OperationPoint> operationPoints;
+
+    ViewScalabilityInfo() = default;
+    explicit ViewScalabilityInfo(BitstreamReader& reader)
+    {
+        numOperationPointsMinus1 = reader.readExpoGlomb();
+        for (auto i = 0; i <= numOperationPointsMinus1; i++)
+        {
+            operationPoints.emplace_back(reader);
+        }
+    }
+};
+
+struct MultiviewSceneInfo
+{
+    std::uint32_t maxDisparity = 0;
+
+    MultiviewSceneInfo() = default;
+    explicit MultiviewSceneInfo(BitstreamReader& reader)
+    {
+        maxDisparity = reader.readExpoGlomb();
+    }
+};
+
+struct MultiviewAcquisitionInfo
+{
+    struct ParamSet
+    {
+        RealValue focalLengthX;
+        RealValue focalLengthY;
+        RealValue principalPointX;
+        RealValue principalPointY;
+        RealValue skew;
+    };
+
+    struct ExtrinsicParam
+    {
+        RealValue rotation[3][3];
+        RealValue translation[3];
+    };
+
+    std::uint32_t numViewsMinus1 = 0;
+    bool intrinsicParamFlag = false;
+    bool extrinsicParamFlag = false;
+
+    bool intrinsicParamsEqual = false;
+    std::uint32_t precFocalLength = 0;
+    std::uint32_t precPrincipalPoint = 0;
+    std::uint32_t precSkewFactor = 0;
+    std::vector<ParamSet> paramSets;
+
+    std::uint32_t precRotationParam = 0;
+    std::uint32_t precTranslationParam = 0;
+    std::vector<ExtrinsicParam> extrinsicParams;
 
 };
 

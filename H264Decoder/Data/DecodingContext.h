@@ -7,6 +7,8 @@
 #include <Data\NALU\InterpretationOfPicStruct.h>
 #include <Data\NALU\SliceHeader.h>
 #include <Data\NALU\CurrentPictureContext.h>
+#include <Data\NALU\SubsetSPSRbsp.h>
+
 
 constexpr bool GetIdrPicFlag(NaluTypes nalType)
 {
@@ -24,7 +26,7 @@ struct DecodingContext
     } applicationDeterminedValues;
 
     std::unordered_map<int, PPSRbsp> ppsContext;
-    std::unordered_map<int, SPSRbsp> spsContext;
+    std::unordered_map<int, std::variant<SPSRbsp, SubsetSPSRbsp>> spsContext;
     std::unordered_map<int, DPSContext> dpsContext;
 
     std::uint8_t numClockTs = 0;
@@ -44,12 +46,12 @@ struct DecodingContext
 
     int getPicWidthInMbs()
     {
-        return currentSPS().spsData.picWidthInMbsMinus1 + 1;
+        return currentSPS().picWidthInMbsMinus1 + 1;
     }
 
     int getPicHeightInMapUnits()
     {
-        return currentSPS().spsData.picHeightInMapUnitsMinus1 + 1;
+        return currentSPS().picHeightInMapUnitsMinus1 + 1;
     }
 
     int getPicSizeInMapUnits()
@@ -66,32 +68,63 @@ struct DecodingContext
         return ppsContext.at(activePPSId);
     }
 
-    SPSRbsp& currentSPS()
+    SPSData& findSPS(int spsId)
+    {
+        try
+        {
+            return std::get<SPSRbsp>(spsContext.at(spsId)).spsData;
+        }
+        catch (std::bad_variant_access)
+        {
+            std::get<SubsetSPSRbsp>(spsContext.at(spsId)).spsData;
+        }
+    }
+
+    SubsetSPSRbsp& findSubsetSPS(int spsId)
+    {
+        try
+        {
+            return std::get<SubsetSPSRbsp>(spsContext.at(spsId));
+        }
+        catch (std::bad_variant_access)
+        {
+            throw std::runtime_error("subset sps not found");
+        }
+    }
+
+    SPSData& currentSPS()
     {
         if (activeSPSId == -1)
         {
-            throw std::runtime_error("no current pps");
+            throw std::runtime_error("no current sps");
         }
-        return spsContext.at(activeSPSId);
+        try
+        {
+            return std::get<SPSRbsp>(spsContext.at(activeSPSId)).spsData;
+        }
+        catch (std::bad_variant_access)
+        {
+            std::get<SubsetSPSRbsp>(spsContext.at(activeSPSId)).spsData;
+        }
     }
 
     bool cpbDpbDelaysPresentFlag()
     {
-        return (currentSPS().spsData.vuiParametersPresentFlag && (currentSPS().spsData.vuiParameters.nalHrdParametersPresentFlag ||
-            currentSPS().spsData.vuiParameters.vclHrdParametersPresentFlag)) ||
+        return (currentSPS().vuiParametersPresentFlag && (currentSPS().vuiParameters.nalHrdParametersPresentFlag ||
+            currentSPS().vuiParameters.vclHrdParametersPresentFlag)) ||
             applicationDeterminedValues.cpbDpbDelaysPresentFlag;
     }
 
     bool mustHavePicTiming()
     {
-        return cpbDpbDelaysPresentFlag() && currentSPS().spsData.vuiParametersPresentFlag && currentSPS().spsData.vuiParameters.picStructPresentFlag;
+        return cpbDpbDelaysPresentFlag() && currentSPS().vuiParametersPresentFlag && currentSPS().vuiParameters.picStructPresentFlag;
     }
 
     DPSContext& currentDPS()
     {
         if (activeDPSId == -1)
         {
-            throw std::runtime_error("no current pps");
+            throw std::runtime_error("no current dps");
         }
         return dpsContext.at(activeDPSId);
     }
@@ -105,20 +138,27 @@ struct DecodingContext
         return ppsContext.at(activePPSId);
     }
 
-    const SPSRbsp& currentSPS() const
+    const SPSData& currentSPS() const
     {
         if (activeSPSId == -1)
         {
-            throw std::runtime_error("no current pps");
+            throw std::runtime_error("no current sps");
         }
-        return spsContext.at(activeSPSId);
+        try
+        {
+            return std::get<SPSRbsp>(spsContext.at(activeSPSId)).spsData;
+        }
+        catch (std::bad_variant_access)
+        {
+            std::get<SubsetSPSRbsp>(spsContext.at(activeSPSId)).spsData;
+        }
     }
 
     const DPSContext& currentDPS() const
     {
         if (activeDPSId == -1)
         {
-            throw std::runtime_error("no current pps");
+            throw std::runtime_error("no current dps");
         }
         return dpsContext.at(activeDPSId);
     }
@@ -135,7 +175,7 @@ struct DecodingContext
 
     void addSPS(const SPSRbsp& sps)
     {
-        spsContext.insert(std::make_pair(static_cast<int>(sps.spsData.spsId), sps));
+        spsContext.insert(std::make_pair(static_cast<int>(sps.spsData.spsId), std::variant<SPSRbsp, SubsetSPSRbsp>(sps)));
         if (activeSPSId == -1)
         {
             activeSPSId = sps.spsData.spsId;

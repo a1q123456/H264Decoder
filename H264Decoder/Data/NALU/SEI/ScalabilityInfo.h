@@ -97,7 +97,7 @@ struct ScalabilityInfo
         std::uint8_t numSubsetSeqParameterSets = 0;
         std::vector<std::uint8_t> subsetSeqParameterSetIdDelta;
         std::uint8_t numPicParameterSetsMinus1 = 0;
-        std::vector<std::uint8_t> picParameterSetIdDelta;
+        std::vector<std::uint32_t> picParameterSetIdDelta;
         std::uint8_t parameterSetsInfoSrcLayerIdDelta = 0;
 
         bool motionVectorsOverPicBoundariesFlag = false;
@@ -222,7 +222,7 @@ struct ScalabilityInfo
                 numPicParameterSetsMinus1 = reader.readExpoGlomb();
                 for (auto j = 0; j <= numPicParameterSetsMinus1; j++)
                 {
-                    picParameterSetIdDelta = reader.readExpoGlomb();
+                    picParameterSetIdDelta.emplace_back(reader.readExpoGlomb());
                 }
             }
             else
@@ -231,7 +231,7 @@ struct ScalabilityInfo
             }
             if (bitstreamRestrictionInfoPresentFlag)
             {
-                motionVectorsOverPicBoundariesFlag = reader.readBits<bool, 1.();
+                motionVectorsOverPicBoundariesFlag = reader.readBits<bool, 1>();
                 maxBytesPerPicDenom = reader.readExpoGlomb();
                 maxBitsPerMbDenom = reader.readExpoGlomb();
                 log2MaxMvLengthHorizontal = reader.readExpoGlomb();

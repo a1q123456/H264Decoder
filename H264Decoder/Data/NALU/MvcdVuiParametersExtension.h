@@ -1,5 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\MvcdOp.h>
 
 struct MvcdVuiParametersExtension
 {

@@ -1,5 +1,8 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\VuiView.h>
+#include <Data\NALU\SpsMvcdLevelValuesSignalled.h>
+#include <Data\NALU\MvcdVuiParametersExtension.h>
 
 
 struct SpsMvcdExtension
@@ -25,12 +28,12 @@ struct SpsMvcdExtension
         numViewsMinus1 = reader.readExpoGlomb();
         for (auto i = 0, numDepthViews = 0; i <= numViewsMinus1; i++)
         {
-            auto&& view = depthViews.emplace_back();;
-            view.viewId = reader.readExpoGlomb();
-            view.depthViewPresentFlag = reader.readBits<std::uint8_t, 1>();
-            view.textureViewPresentFlag = reader.readBits<std::uint8_t, 1>();
-            depthViews[numDepthViews].depthViewId = view.viewId;
-            numDepthViews += view.depthViewPresentFlag ? 1 : 0;
+            auto&& view = depthViews.emplace(std::end(depthViews));
+            view->viewId = reader.readExpoGlomb();
+            view->depthViewPresentFlag = reader.readBits<std::uint8_t, 1>();
+            view->textureViewPresentFlag = reader.readBits<std::uint8_t, 1>();
+            depthViews[numDepthViews].depthViewId = view->viewId;
+            numDepthViews += view->depthViewPresentFlag ? 1 : 0;
         }
         anchorRefs.resize(numViewsMinus1 + 1);
         nonAnchorRefs.resize(numViewsMinus1 + 1);

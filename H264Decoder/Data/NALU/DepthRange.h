@@ -2,6 +2,7 @@
 #include <IO/BitstreamReader.h>
 #include <Data\NALU\ThreeDVAcquisitionElement.h>
 
+struct DecodingContext;
 
 struct DepthRange
 {

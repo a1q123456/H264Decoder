@@ -35,16 +35,16 @@ struct PicTiming
     PicTiming() = default;
     explicit PicTiming(DecodingContext& context, BitstreamReader& reader, int payloadSize)
     {
-        auto cpbDpbDelaysPresentFlag = context.currentSPS().spsData.vuiParameters.nalHrdParametersPresentFlag ||
-            context.currentSPS().spsData.vuiParameters.vclHrdParametersPresentFlag ||
+        auto cpbDpbDelaysPresentFlag = context.currentSPS().vuiParameters.nalHrdParametersPresentFlag ||
+            context.currentSPS().vuiParameters.vclHrdParametersPresentFlag ||
             context.applicationDeterminedValues.cpbDpbDelaysPresentFlag;
 
         if (cpbDpbDelaysPresentFlag)
         {
-            cpbRemovalDelay = reader.readBits<std::uint16_t>(context.currentSPS().spsData.vuiParameters.hrdParameters.cpbRemovalDelayLengthMinus1 + 1);
-            dpbOutputDelay = reader.readBits<std::uint16_t>(context.currentSPS().spsData.vuiParameters.hrdParameters.dpbOutputDelayLengthMinus1 + 1);
+            cpbRemovalDelay = reader.readBits<std::uint16_t>(context.currentSPS().vuiParameters.hrdParameters.cpbRemovalDelayLengthMinus1 + 1);
+            dpbOutputDelay = reader.readBits<std::uint16_t>(context.currentSPS().vuiParameters.hrdParameters.dpbOutputDelayLengthMinus1 + 1);
         }
-        if (context.currentSPS().spsData.vuiParameters.picStructPresentFlag)
+        if (context.currentSPS().vuiParameters.picStructPresentFlag)
         {
             picStruct = reader.readBits<std::uint8_t, 4>();
             auto iter = std::find_if(std::begin(context.interpreatationOfPicStruct), std::end(context.interpreatationOfPicStruct), [=](const InterpretationOfPicStruct& ips) { return ips.value == picStruct; });
@@ -89,9 +89,9 @@ struct PicTiming
                             }
                         }
                     }
-                    if (context.currentSPS().spsData.vuiParameters.hrdParameters.timeOffsetLength > 0)
+                    if (context.currentSPS().vuiParameters.hrdParameters.timeOffsetLength > 0)
                     {
-                        cts.timeOffset = reader.readBits<std::int16_t>(context.currentSPS().spsData.vuiParameters.hrdParameters.timeOffsetLength);
+                        cts.timeOffset = reader.readBits<std::int16_t>(context.currentSPS().vuiParameters.hrdParameters.timeOffsetLength);
                     }
                 }
                 clockTSs.emplace_back(cts);

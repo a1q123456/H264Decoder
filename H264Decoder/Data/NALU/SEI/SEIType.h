@@ -58,7 +58,21 @@ enum class SEIType
     DepthTiming,
     DepthSamplingInfo,
     ConstrainedDepthParameterSetIdentifier,
+    GreenMetadata,
     MasteringDisplayColourVolume,
+    ColourRemappingInfo,
+    ContentLightLevelInfo,
+    AlternativeTransferCharacteristics,
+    AmbientViewingEnvironment,
+    ContentColourVolume,
+    EquirectangularProjection,
+    CubemapProjection,
+    SphereRotation,
+    RegionwisePacking,
+    OmniViewport,
+    AlternativeDepthInfo,
+    SEIManifest,
+    SEIPrefixIndication,
     ReservedSEIMessage
 
 };

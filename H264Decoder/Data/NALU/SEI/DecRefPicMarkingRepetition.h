@@ -17,7 +17,7 @@ struct DecRefPicMarkingRepetition
         originalIdrFlag = reader.readBits<bool, 1>();
         originalFrameNum = reader.readExpoGlomb();
 
-        if (ctx.currentSPS().spsData.frameMbsOnlyFlag)
+        if (ctx.currentSPS().frameMbsOnlyFlag)
         {
             originalFieldPicFlag = reader.readBits<bool, 1>();
             if (originalFieldPicFlag)

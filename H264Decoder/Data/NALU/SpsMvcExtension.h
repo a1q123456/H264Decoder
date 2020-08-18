@@ -1,5 +1,7 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\AnchorRef.h>
+#include <Data\NALU\SpsMvcLevelValuesSignalled.h>
 
 
 struct SpsMvcExtension
