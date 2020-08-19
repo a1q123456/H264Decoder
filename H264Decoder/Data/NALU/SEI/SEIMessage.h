@@ -728,6 +728,553 @@ struct MultiviewAcquisitionInfo
 
 };
 
+struct NonRequiredViewComponent
+{
+    struct InfoEntry
+    {
+        std::uint32_t viewOrderIndex = 0;
+        std::uint32_t numNonRequiredViewComponentsMinus1 = 0;
+        std::vector<std::uint32_t> indexDeltaMinus1;
+
+        InfoEntry() = default;
+        explicit InfoEntry(BitstreamReader& reader)
+        {
+            viewOrderIndex = reader.readExpoGlomb();
+            numNonRequiredViewComponentsMinus1 = reader.readExpoGlomb();
+            for (auto j = 0; j <= numNonRequiredViewComponentsMinus1; j++)
+            {
+                indexDeltaMinus1.emplace_back(reader.readExpoGlomb());
+            }
+        }
+    };
+    std::uint32_t numInfoEntries = 0;
+    std::vector<InfoEntry> infoEntries;
+
+    NonRequiredViewComponent() = default;
+    explicit NonRequiredViewComponent(BitstreamReader& reader)
+    {
+        numInfoEntries = reader.readExpoGlomb();
+        for (auto i = 0; i <= numInfoEntries; i++)
+        {
+            infoEntries.emplace_back(reader);
+        }
+    }
+};
+
+struct ViewDependencyChange
+{
+    struct RefFlags
+    {
+        std::vector<BoolType> L0Flags;
+        std::vector<BoolType> L1Flags;
+
+    };
+
+    std::uint32_t seqParameterSetId = 0;
+    bool anchorUpdateFlag = false;
+    bool nonAnchorUpdateFlag = false;
+    std::vector<RefFlags> anchorRefFlags;
+    std::vector<RefFlags> nonAnchorRefFlags;
+
+    ViewDependencyChange() = default;
+    explicit ViewDependencyChange(DecodingContext& ctx, BitstreamReader& reader)
+    {
+        seqParameterSetId = reader.readExpoGlomb();
+        anchorUpdateFlag = reader.readBits<bool, 1>();
+        nonAnchorUpdateFlag = reader.readBits<bool, 1>();
+
+        auto sps = ctx.findSubsetSPS(seqParameterSetId);
+
+        if (anchorUpdateFlag)
+        {
+            anchorRefFlags.resize(sps.seqParameterSetMVCExtension.numViewsMinus1 + 1);
+            for (auto i = 1; i <= sps.seqParameterSetMVCExtension.numViewsMinus1; i++)
+            {
+                anchorRefFlags[i].L0Flags.resize(sps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL0);
+                for (auto j = 0; j < sps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL0; j++)
+                {
+                    anchorRefFlags[i].L0Flags[j] = reader.readBits<std::uint8_t, 1>();
+                }
+                anchorRefFlags[i].L1Flags.resize(sps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL1);
+                for (auto j = 0; j < sps.seqParameterSetMVCExtension.anchorRefs[i].numAnchorRefsL1; j++)
+                {
+                    anchorRefFlags[i].L1Flags[j] = reader.readBits<std::uint8_t, 1>();
+                }
+            }
+        }
+        if (nonAnchorUpdateFlag)
+        {
+            nonAnchorRefFlags.resize(sps.seqParameterSetMVCExtension.numViewsMinus1 + 1);
+            for (auto i = 1; i <= sps.seqParameterSetMVCExtension.numViewsMinus1; i++)
+            {
+                nonAnchorRefFlags[i].L0Flags.resize(sps.seqParameterSetMVCExtension.nonAnchorRefs[i].numAnchorRefsL0);
+                for (auto j = 0; j < sps.seqParameterSetMVCExtension.nonAnchorRefs[i].numAnchorRefsL0; j++)
+                {
+                    nonAnchorRefFlags[i].L0Flags[j] = reader.readBits<std::uint8_t, 1>();
+                }
+                nonAnchorRefFlags[i].L1Flags.resize(sps.seqParameterSetMVCExtension.nonAnchorRefs[i].numAnchorRefsL1);
+                for (auto j = 0; j < sps.seqParameterSetMVCExtension.nonAnchorRefs[i].numAnchorRefsL1; j++)
+                {
+                    nonAnchorRefFlags[i].L1Flags[j] = reader.readBits<std::uint8_t, 1>();
+                }
+            }
+        }
+    }
+};
+
+struct OperationPointNotPresent
+{
+    std::uint32_t numOperationPoints = 0;
+    std::vector<std::uint32_t> operationPointNotPresentId;
+
+    OperationPointNotPresent() = default;
+    explicit OperationPointNotPresent(BitstreamReader& reader)
+    {
+        numOperationPoints = reader.readExpoGlomb();
+        for (auto k = 0; k < numOperationPoints; k++)
+        {
+            operationPointNotPresentId.emplace_back(reader.readExpoGlomb());
+        }
+    }
+};
+
+struct OperationPointsNotPresent
+{
+    std::uint32_t numOperationPoints = 0;
+    std::vector<std::uint32_t> operationPointNotPresentId;
+
+    OperationPointsNotPresent() = default;
+    explicit OperationPointsNotPresent(BitstreamReader& reader)
+    {
+        numOperationPoints = reader.readExpoGlomb();
+        for (auto i = 0; i <= numOperationPoints; i++)
+        {
+            operationPointNotPresentId.emplace_back(reader.readExpoGlomb());
+        }
+    }
+};
+
+struct BaseViewTemporalHrd
+{
+    struct TemporalLayer
+    {
+        std::uint8_t seiMvcTemporalId = 0;
+        bool seiMvcTimingInfoPresentFlag = false;
+        std::uint32_t seiMvcNumUnitsInTick = 0;
+        std::uint32_t seiMvcTimeScale = 0;
+        bool seiMvcFixedFrameRateFlag = false;
+
+        bool seiMvcNalHrdParametersPresentFlag = false;
+        bool seiMvcVclHrdParametersPresentFlag = false;
+
+        HrdParameters hrdParameters;
+        bool seiMvcLowDelayHrdFlag = false;
+        bool seiMvcPicStructPresentFlag = false;
+
+        TemporalLayer() = default;
+        explicit TemporalLayer(BitstreamReader& reader)
+        {
+            seiMvcTemporalId = reader.readBits<std::uint8_t, 3>();
+            seiMvcTimingInfoPresentFlag = reader.readBits<bool, 1>();
+            if (seiMvcTimingInfoPresentFlag)
+            {
+                seiMvcNumUnitsInTick = reader.readBits<std::uint32_t, 32>();
+                seiMvcTimeScale = reader.readBits<std::uint32_t, 32>();
+                seiMvcFixedFrameRateFlag = reader.readBits<bool, 1>();
+            }
+            seiMvcNalHrdParametersPresentFlag = reader.readBits<bool, 1>();
+            if (seiMvcNalHrdParametersPresentFlag)
+            {
+                hrdParameters = HrdParameters{ reader };
+            }
+            seiMvcVclHrdParametersPresentFlag = reader.readBits<bool, 1>();
+            if (seiMvcVclHrdParametersPresentFlag)
+            {
+                hrdParameters = HrdParameters{ reader };
+            }
+            if (seiMvcNalHrdParametersPresentFlag || seiMvcVclHrdParametersPresentFlag)
+            {
+                seiMvcLowDelayHrdFlag = reader.readBits<bool, 1>();
+            }
+            seiMvcPicStructPresentFlag = reader.readBits<bool, 1>();
+        }
+    };
+
+    std::uint32_t numOfTemporalLayersInBaseViewMinus1 = 0;
+    std::vector<TemporalLayer> temporalLayersInBaseView;
+
+    BaseViewTemporalHrd() = default;
+    explicit BaseViewTemporalHrd(BitstreamReader& reader)
+    {
+        numOfTemporalLayersInBaseViewMinus1 = reader.readExpoGlomb();
+        for (auto i = 0; i <= numOfTemporalLayersInBaseViewMinus1; i++)
+        {
+            temporalLayersInBaseView.emplace_back(reader);
+        }
+    }
+};
+
+struct MultiviewViewPosition
+{
+    std::uint32_t numViewsMinus1 = 0;
+    std::vector<std::uint32_t> viewPosition;
+
+    bool multiViewPositionExtensionFlag = false;
+
+    MultiviewViewPosition() = default;
+    explicit MultiviewViewPosition(BitstreamReader& reader)
+    {
+        numViewsMinus1 = reader.readExpoGlomb();
+        for (auto i = 0; i <= numViewsMinus1; i++)
+        {
+            viewPosition.emplace_back(reader.readExpoGlomb());
+        }
+        multiViewPositionExtensionFlag = reader.readBits<bool, 1>();
+    }
+};
+
+struct MvcdScalableNesting
+{
+    struct ViewComponent
+    {
+        std::uint16_t seiViewId = 0;
+        bool seiViewApplicablityFlag = false;
+
+        ViewComponent() = default;
+        explicit ViewComponent(BitstreamReader& reader)
+        {
+            seiViewId = reader.readBits<std::uint16_t, 10>();
+            seiViewApplicablityFlag = reader.readBits<bool, 1>();
+        }
+    };
+
+    struct ViewComponentOp
+    {
+        std::uint16_t seiOpViewId = 0;
+        bool seiOpDepthFlag = false;
+        bool seiOpTextureFlag = false;
+
+        ViewComponentOp() = default;
+        explicit ViewComponentOp(BitstreamReader& reader, bool opTextureFlag)
+        {
+            seiOpViewId = reader.readBits<std::uint16_t, 10>();
+            if (!opTextureFlag)
+            {
+                seiOpDepthFlag = reader.readBits<bool, 1>();
+                seiOpTextureFlag = reader.readBits<bool, 1>();
+            }
+            
+        }
+    };
+
+    bool operationPointFlag = false;
+    bool allViewComponentsInAuFlag = false;
+    std::uint32_t numViewComponentsMinus1 = 0;
+    std::vector<ViewComponent> viewComponents;
+
+    bool seiOpTextureOnlyFlag = false;
+    std::uint32_t numViewComponentsOpMinus1 = 0;
+    std::vector<ViewComponentOp> viewComponentOps;
+
+    std::uint8_t seiOpTemporalId = 0;
+
+    std::uint8_t seiNestingZeroBit = 0;
+
+    SEIMessage seiMessage;
+
+    MvcdScalableNesting() = default;
+    explicit MvcdScalableNesting(BitstreamReader& reader)
+    {
+        operationPointFlag = reader.readBits<bool, 1>();
+        if (!operationPointFlag)
+        {
+            allViewComponentsInAuFlag = reader.readBits<bool, 1>();
+            if (!allViewComponentsInAuFlag)
+            {
+                numViewComponentsMinus1 = reader.readExpoGlomb();
+                for (auto i = 0; i <= numViewComponentsMinus1; i++)
+                {
+                    viewComponents.emplace_back(reader);
+                }
+            }
+        }
+        else
+        {
+            seiOpTextureOnlyFlag = reader.readBits<bool, 1>();
+            numViewComponentsMinus1 = reader.readExpoGlomb();
+            for (auto i = 0; i <= numViewComponentsOpMinus1; i++)
+            {
+                viewComponentOps.emplace_back(reader);
+            }
+            seiOpTemporalId = reader.readBits<std::uint8_t, 3>();
+        }
+
+        while (!reader.byteAligned())
+        {
+            seiNestingZeroBit = reader.readBits<std::uint8_t, 1>();
+        }
+
+        // TODO: sei message
+    }
+};
+
+struct DepthRepresentationSEIElement
+{
+    RealValue val;
+    std::uint8_t mantissaLenMinus1 = 0;
+
+    DepthRepresentationSEIElement() = default;
+    DepthRepresentationSEIElement(BitstreamReader& reader)
+    {
+        val.sign = reader.readBits<std::uint8_t, 1>();
+        val.exponent = reader.readBits<std::uint8_t, 7>();
+        mantissaLenMinus1 = reader.readBits<std::uint8_t, 5>();
+        val.mantissa = reader.readBits<std::uint8_t>(mantissaLenMinus1);
+    }
+};
+
+struct DepthRepresentationInfo
+{
+    struct ViewInfo
+    {
+        std::uint32_t depthInfoViewId = 0;
+        std::uint32_t zAxisReferenceIView = 0;
+        std::uint32_t disparityReferenceView = 0;
+        DepthRepresentationSEIElement zNear;
+        DepthRepresentationSEIElement zFar;
+        DepthRepresentationSEIElement dMin;
+        DepthRepresentationSEIElement dMax;
+
+        ViewInfo() = default;
+        explicit ViewInfo(BitstreamReader& reader, bool zNearFlag, bool zFarFlag, bool dMinFlag, bool dMaxFlag, bool zAxisEqualFlag)
+        {
+            depthInfoViewId = reader.readExpoGlomb();
+            if ((zNearFlag || zFarFlag) && (!zAxisEqualFlag))
+            {
+                zAxisReferenceIView = reader.readExpoGlomb();
+            }
+            if (dMinFlag || dMaxFlag)
+            {
+                disparityReferenceView = reader.readExpoGlomb();
+            }
+            if (zNearFlag)
+            {
+                zNear = DepthRepresentationSEIElement{ reader };
+            }
+            if (zFarFlag)
+            {
+                zFar = DepthRepresentationSEIElement{ reader };
+            }
+            if (dMinFlag)
+            {
+                dMin = DepthRepresentationSEIElement{ reader };
+            }
+            if (dMaxFlag)
+            {
+                dMax = DepthRepresentationSEIElement{ reader };
+            }
+        }
+    };
+
+    bool allViewsEqualFlag = false;
+    std::uint32_t numViewsMinus1 = 0;
+
+    bool zNearFlag = false;
+    bool zFarFlag = false;
+
+    bool zAxisEqualFlag = false;
+    std::uint32_t commonZAxisReferenceView = 0;
+    bool dMinFlag = false;
+    bool dMaxFlag = false;
+
+    std::uint32_t depthRepresentationType = 0;
+    std::vector<ViewInfo> viewInfos;
+    std::uint32_t depthNonlinearRepresentationNumMinus1 = 0;
+    std::vector<std::uint32_t> depthNonlinearRepresentationModel;
+
+    DepthRepresentationInfo() = default;
+    explicit DepthRepresentationInfo(BitstreamReader& reader)
+    {
+        allViewsEqualFlag = reader.readBits<bool, 1>();
+        int numViews = 0;
+        if (!allViewsEqualFlag)
+        {
+            numViewsMinus1 = reader.readExpoGlomb();
+            numViews = numViewsMinus1 + 1;
+        }
+        else
+        {
+            numViews = 1;
+        }
+        zNearFlag = reader.readBits<bool, 1>();
+        zFarFlag = reader.readBits<bool, 1>();
+        if (zNearFlag || zFarFlag)
+        {
+            zAxisEqualFlag = reader.readBits<bool, 1>();
+            if (zAxisEqualFlag)
+            {
+                commonZAxisReferenceView = reader.readExpoGlomb();
+            }
+        }
+        dMinFlag = reader.readBits<bool, 1>();
+        dMaxFlag = reader.readBits<bool, 1>();
+        depthRepresentationType = reader.readExpoGlomb();
+        for (auto i = 0; i < numViews; i++)
+        {
+            viewInfos.emplace_back(reader, zNearFlag, zFarFlag, dMinFlag, dMaxFlag, zAxisEqualFlag);
+        }
+        if (depthRepresentationType == 3)
+        {
+            depthNonlinearRepresentationNumMinus1 = reader.readExpoGlomb();
+            depthNonlinearRepresentationModel.resize(depthNonlinearRepresentationNumMinus1 + 2);
+            for (auto i = 1; i <= depthNonlinearRepresentationNumMinus1 + 1; i++)
+            {
+                depthNonlinearRepresentationModel[i] = reader.readExpoGlomb();
+            }
+        }
+    }
+};
+
+struct ThreeDimensionalReferenceDisplayInfo
+{
+    struct RefDisplay
+    {
+        RealValue refBaseline;
+        RealValue refDisplayWidth;
+        RealValue refViewingDistance;
+        bool additionalShitPresentFlag = false;
+        std::uint16_t numSampleShiftPlus512 = 0;
+
+        RefDisplay() = default;
+        explicit RefDisplay(BitstreamReader& reader, bool refViewingDistanceFlag, int precRefDisplayWidth)
+        {
+            int v = 0;
+            refBaseline.sign = 1;
+            refBaseline.exponent = reader.readBits<std::uint8_t, 6>();
+            if (refBaseline.exponent == 0)
+            {
+                v = std::max(0, precRefDisplayWidth - 30);
+            }
+            else if (0 < refBaseline.exponent && refBaseline.exponent < 63)
+            {
+                v = std::max(0, refBaseline.exponent + precRefDisplayWidth - 31);
+            }
+            else
+            {
+                v = 0;
+            }
+            refBaseline.mantissa = reader.readBits<std::uint8_t>(v);
+
+            refDisplayWidth.sign = 1;
+            refDisplayWidth.exponent = reader.readBits<std::uint8_t, 8>();
+
+            if (refDisplayWidth.exponent == 0)
+            {
+                v = std::max(0, precRefDisplayWidth - 30);
+            }
+            else if (0 < refDisplayWidth.exponent && refDisplayWidth.exponent < 63)
+            {
+                v = std::max(0, refDisplayWidth.exponent + precRefDisplayWidth - 31);
+            }
+            else
+            {
+                v = 0;
+            }
+            refDisplayWidth.mantissa = reader.readBits<std::uint8_t>(v);
+            if (refViewingDistanceFlag)
+            {
+                refViewingDistance.sign = 1;
+                refViewingDistance.exponent = reader.readBits<std::uint8_t, 6>();
+                if (refViewingDistance.exponent == 0)
+                {
+                    v = std::max(0, precRefDisplayWidth - 30);
+                }
+                else if (0 < refViewingDistance.exponent && refViewingDistance.exponent < 63)
+                {
+                    v = std::max(0, refViewingDistance.exponent + precRefDisplayWidth - 31);
+                }
+                else
+                {
+                    v = 0;
+                }
+                refViewingDistance.mantissa = reader.readBits<std::uint8_t>(v);
+            }
+            additionalShitPresentFlag = reader.readBits<bool, 1>();
+            if (additionalShitPresentFlag)
+            {
+                numSampleShiftPlus512 = reader.readBits<std::uint16_t, 10>();
+            }
+        }
+    };
+
+    std::uint32_t precRefBaseline = 0;
+    std::uint32_t precRefDisplayWidth = 0;
+    bool refViewingDistanceFlag = false;
+    std::uint32_t precRefViewingDist = 0;
+    std::uint32_t numRefDisplaysMinus1 = 0;
+    std::vector<RefDisplay> refDisplays;
+    bool threeDimensionalReferenceDisplaysExtensionFlag = false;
+
+    ThreeDimensionalReferenceDisplayInfo() = default;
+    explicit ThreeDimensionalReferenceDisplayInfo(BitstreamReader& reader)
+    {
+        precRefBaseline = reader.readExpoGlomb();
+        precRefDisplayWidth = reader.readExpoGlomb();
+        refViewingDistanceFlag = reader.readBits<bool, 1>();
+
+        if (refViewingDistanceFlag)
+        {
+            precRefViewingDist = reader.readExpoGlomb();
+        }
+        numRefDisplaysMinus1 = reader.readExpoGlomb();
+        auto numRefDisplays = numRefDisplaysMinus1 + 1;
+        for (auto i = 0; i < numRefDisplays; i++)
+        {
+            refDisplays.emplace_back(reader, refViewingDistanceFlag);
+        }
+    }
+};
+
+struct DepthTimingOffset
+{
+    std::uint8_t offsetLenMinus1 = 0;
+    std::uint32_t depthDispDelayOffsetFp = 0;
+    std::uint8_t depthDispDelayOffsetDp = 0;
+
+    DepthTimingOffset() = default;
+    explicit DepthTimingOffset(BitstreamReader& reader)
+    {
+        offsetLenMinus1 = reader.readBits<std::uint8_t, 5>();
+        depthDispDelayOffsetFp = reader.readBits<std::uint32_t>(offsetLenMinus1 + 1);
+        depthDispDelayOffsetDp = reader.readBits<std::uint8_t, 6>();
+    }
+};
+
+struct DepthTiming
+{
+    bool perViewDepthTimingFlag = false;
+    std::vector<DepthTimingOffset> depthTimingOffsets;
+    DepthTimingOffset depthTimingOffset;
+
+    DepthTiming() = default;
+    explicit DepthTiming(DecodingContext& ctx, BitstreamReader& reader)
+    {
+        perViewDepthTimingFlag = reader.readBits<bool, 1>();
+        if (perViewDepthTimingFlag)
+        {
+            for (auto i = 0; i < ctx.currentDPS().dpsRbsp.numDepthViewsMinus1 + 1; i++)
+            {
+                depthTimingOffsets.emplace_back(reader);
+            }
+        }
+        else
+        {
+            depthTimingOffset = DepthTimingOffset{ reader };
+        }
+    }
+
+};
+
 constexpr auto SEIMessageTypes = std::make_tuple(
     std::declval<BufferingPeriod>(),
     std::declval<PicTiming>(),

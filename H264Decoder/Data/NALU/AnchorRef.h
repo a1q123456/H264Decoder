@@ -4,7 +4,7 @@
 struct AnchorRef
 {
     std::uint8_t numAnchorRefsL0 = 0;
-    std::vector<std::uint8_t> anchorRefl0;
+    std::vector<std::uint8_t> anchorRefL0;
 
     std::uint8_t numAnchorRefsL1 = 0;
     std::vector<std::uint8_t> anchorRefl1;
@@ -12,7 +12,7 @@ struct AnchorRef
     AnchorRef() = default;
     explicit AnchorRef(BitstreamReader& reader)
     {
-        ReadAnchorRef(reader, numAnchorRefsL0, anchorRefl0);
+        ReadAnchorRef(reader, numAnchorRefsL0, anchorRefL0);
         ReadAnchorRef(reader, numAnchorRefsL1, anchorRefl1);
     }
 
