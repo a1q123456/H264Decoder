@@ -59,7 +59,7 @@
 #include <Data\NALU\SEI\MasteringDisplayColourVolume.h>
 #include <Data\NALU\SEI\ReservedSEIMessage.h>
 #include <Data\NALU\SEI\SEIType.h>
-#include <Data\RealValue.h>
+#include <Data\DecimalValue.h>
 
 namespace SEITypeMapping
 {

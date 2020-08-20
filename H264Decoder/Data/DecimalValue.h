@@ -12,7 +12,7 @@ struct DecimalValue
     std::uint8_t dp = 0;
 };
 
-int GetMantisaLength(int exponent, int prec)
+int getMantisaLength(int exponent, int prec)
 {
     if (exponent == 0)
     {
