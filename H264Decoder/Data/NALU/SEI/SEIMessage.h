@@ -63,87 +63,211 @@
 
 namespace SEITypeMapping
 {
-    template<size_t I, typename TCur, typename ...TArr>
-    struct FindTypeArrayImpl
-    {
-        using Type = FindTypeArrayImpl<I - 1, TArr...>::Type;
-    };
-
-    template<typename TCur, typename ...TArr>
-    struct FindTypeArrayImpl<0, TCur, TArr...>
-    {
-        using Type = TCur;
-    };
-
-
-    template<typename ...T>
+    template<SEIType Last, typename ...T>
     struct TypePack 
     {
-    public:
-        template<size_t I>
-        struct FindTypeArray
+    private:
+        template<typename Map, typename CurT, typename ...TCreator>
+        static inline void RegisterTypesImpl(Map&& map)
         {
-            using Type = FindTypeArrayImpl<I, T...>::Type;
-        };
+            map[CurT::seiType] = CurT{};
+            RegisterTypesImpl<Map, TCreator...>(std::forward<Map>(map));
+        }
+    public:
+        template<typename Map>
+        static inline void RegisterTypes(Map&& map)
+        {
+            RegisterTypesImpl<Map, T...>(std::forward<Map>(map));
+        }
+
     };
 
-    using Mapping = TypePack<BufferingPeriod,
-        PicTiming,
-        PanScanRect,
-        FillerPayload,
-        UserDataRegisteredItuTT35,
-        UserDataUnregistered,
-        RecoveryPoint,
-        DecRefPicMarkingRepetition,
-        SparePic,
-        SceneInfo,
-        SubSeqInfo,
-        SubSeqLayerCharacteristics,
-        SubSeqCharacteristics,
-        FullFrameFreeze,
-        FullFrameFreezeRelease,
-        FullFrameSnapshot,
-        ProgressiveRefinementSegmentStart,
-        ProgressiveRefinementSegmentEnd,
-        MotionConstrainedSliceGroupSet,
-        FilmGrainCharacteristics,
-        DeblockingFilterDisplayPreference,
-        StereoVideoInfo,
-        PostFilterHint,
-        ToneMappingInfo,
-        ScalabilityInfo,
-        SubPicScalableLayer,
-        NonRequiredLayerRep,
-        PriorityLayerInfo,
-        LayersNotPresent,
-        LayerDependencyChange,
-        ScalableNesting,
-        BaseLayerTemporalHrd,
-        QualityLayerIntegrityCheck,
-        RedundantPicProperty,
-        Tl0DepRepIndex,
-        TlSwitchingPoint,
-        ParallelDecodingInfo,
-        MvcScalableNesting,
-        ViewScalabilityInfo,
-        MultiviewSceneInfo,
-        MultiviewAcquisitionInfo,
-        NonRequiredViewComponent,
-        ViewDependencyChange,
-        OperationPointsNotPresent,
-        BaseViewTemporalHrd,
-        FramePackingArrangement,
-        MultiviewViewPosition,
-        DisplayOrientation,
-        MvcdScalableNesting,
-        MvcdViewScalabilityInfo,
-        DepthRepresentationInfo,
-        ThreeDimensionalReferenceDisplaysInfo,
-        DepthTiming,
-        DepthSamplingInfo,
-        ConstrainedDepthParameterSetIdentifier,
-        MasteringDisplayColourVolume,
-        ReservedSEIMessage>;
+    template<typename ...T>
+    struct Injector
+    {
+    private:
+        constexpr std::tuple<T...> tup;
+    public:
+
+        template<typename ...Args>
+        constexpr explicit Injector(Args&&... args) : tup(std::make_tuple(args...))
+        {
+
+        }
+
+        template<typename InjectTo>
+        constexpr operator InjectTo() const
+        {
+            return std::get<InjectTo>(tup);
+        }
+    };
+
+    template<typename ...T>
+    constexpr auto makeInjector(T&&... args)
+    {
+        return Injector<T...>(args...);
+    }
+    
+    template<size_t N, typename TSrc>
+    struct PlaceHolder
+    {
+        template<typename T, typename = std::enable_if_t<!std::is_same_v<TSrc, T>>>
+        operator T() const
+        {
+            return std::declval<T>();
+        }
+    };
+
+    template<typename T, size_t All, size_t C, size_t ...N>
+    constexpr auto numberParamsToConstructImpl(std::index_sequence<C, N...>)
+    {
+        if constexpr (std::is_constructible_v<T, PlaceHolder<N, T>...>)
+        {
+            return All;
+        }
+        return numberParamsToConstructImpl<T, All - 1>(std::make_index_sequence<All - 1>{});
+    };
+
+    template<typename T, size_t N>
+    constexpr auto numberParamsToConstruct()
+    {
+        return numberParamsToConstructImpl<T>(std::make_index_sequence<N>{});
+    };
+
+    template<SEIType type, typename T>
+    struct SEIMessageCreator
+    {
+        static constexpr SEIType seiType = type;
+
+        std::shared_ptr<std::uint8_t> operator()(DecodingContext& context, BitstreamReader& reader, int payloadSize, NALUnit& nalu)
+        {
+            return std::shared_ptr<std::uint8_t>(reinterpret_cast<std::uint8_t*>(new T(context, reader, size)), [](std::uint8_t* ptr)
+                {
+                    auto obj = reinterpret_cast<T*>(ptr);
+                    delete obj;
+                });
+        }
+    };
+
+    using Mapping = TypePack<SEIType::ConstrainedDepthParameterSetIdentifier,
+        SEIMessageCreator<SEIType::BufferingPeriod, BufferingPeriod>,
+        SEIMessageCreator<SEIType::PicTiming, PicTiming>,
+        SEIMessageCreator<SEIType::PanScanRect, PanScanRect>,
+        SEIMessageCreator<SEIType::FillerPayload, FillerPayload>,
+        SEIMessageCreator<SEIType::UserDataRegisteredItuTT35, UserDataRegisteredItuTT35>,
+        SEIMessageCreator<SEIType::UserDataUnregistered, UserDataUnregistered>,
+        SEIMessageCreator<SEIType::RecoveryPoint, RecoveryPoint>,
+        SEIMessageCreator<SEIType::DecRefPicMarkingRepetition, DecRefPicMarkingRepetition>,
+        SEIMessageCreator<SEIType::SparePic, SparePic>,
+        SEIMessageCreator<SEIType::SceneInfo, SceneInfo>,
+        SEIMessageCreator<SEIType::SubSeqInfo, SubSeqInfo>,
+        SEIMessageCreator<SEIType::SubSeqLayerCharacteristics, SubSeqLayerCharacteristics>,
+        SEIMessageCreator<SEIType::SubSeqCharacteristics, SubSeqCharacteristics>,
+        SEIMessageCreator<SEIType::FullFrameFreeze, FullFrameFreeze>,
+        SEIMessageCreator<SEIType::FullFrameFreezeRelease, FullFrameFreezeRelease>,
+        SEIMessageCreator<SEIType::FullFrameSnapshot, FullFrameSnapshot>,
+        SEIMessageCreator<SEIType::ProgressiveRefinementSegmentStart, ProgressiveRefinementSegmentStart>,
+        SEIMessageCreator<SEIType::ProgressiveRefinementSegmentEnd, ProgressiveRefinementSegmentEnd>,
+        SEIMessageCreator<SEIType::MotionConstrainedSliceGroupSet, MotionConstrainedSliceGroupSet>,
+        SEIMessageCreator<SEIType::FilmGrainCharacteristics, FilmGrainCharacteristics>,
+        SEIMessageCreator<SEIType::DeblockingFilterDisplayPreference, DeblockingFilterDisplayPreference>,
+        SEIMessageCreator<SEIType::StereoVideoInfo, StereoVideoInfo>,
+        SEIMessageCreator<SEIType::PostFilterHint, PostFilterHint>,
+        SEIMessageCreator<SEIType::ToneMappingInfo, ToneMappingInfo>,
+        SEIMessageCreator<SEIType::ScalabilityInfo, ScalabilityInfo>,
+        SEIMessageCreator<SEIType::SubPicScalableLayer, SubPicScalableLayer>,
+        SEIMessageCreator<SEIType::NonRequiredLayerRep, NonRequiredLayerRep>,
+        SEIMessageCreator<SEIType::PriorityLayerInfo, PriorityLayerInfo>,
+        SEIMessageCreator<SEIType::LayersNotPresent, LayersNotPresent>,
+        SEIMessageCreator<SEIType::LayerDependencyChange, LayerDependencyChange>,
+        SEIMessageCreator<SEIType::ScalableNesting, ScalableNesting>,
+        SEIMessageCreator<SEIType::BaseLayerTemporalHrd, BaseLayerTemporalHrd>,
+        SEIMessageCreator<SEIType::QualityLayerIntegrityCheck, QualityLayerIntegrityCheck>,
+        SEIMessageCreator<SEIType::RedundantPicProperty, RedundantPicProperty>,
+        SEIMessageCreator<SEIType::Tl0DepRepIndex, Tl0DepRepIndex>,
+        SEIMessageCreator<SEIType::TlSwitchingPoint, TlSwitchingPoint>,
+        SEIMessageCreator<SEIType::ParallelDecodingInfo, ParallelDecodingInfo>,
+        SEIMessageCreator<SEIType::MvcScalableNesting, MvcScalableNesting>,
+        SEIMessageCreator<SEIType::ViewScalabilityInfo, ViewScalabilityInfo>,
+        SEIMessageCreator<SEIType::MultiviewSceneInfo, MultiviewSceneInfo>,
+        SEIMessageCreator<SEIType::MultiviewAcquisitionInfo, MultiviewAcquisitionInfo>,
+        SEIMessageCreator<SEIType::NonRequiredViewComponent, NonRequiredViewComponent>,
+        SEIMessageCreator<SEIType::ViewDependencyChange, ViewDependencyChange>,
+        SEIMessageCreator<SEIType::OperationPointsNotPresent, OperationPointsNotPresent>,
+        SEIMessageCreator<SEIType::BaseViewTemporalHrd, BaseViewTemporalHrd>,
+        SEIMessageCreator<SEIType::FramePackingArrangement, FramePackingArrangement>,
+        SEIMessageCreator<SEIType::MultiviewViewPosition, MultiviewViewPosition>,
+        SEIMessageCreator<SEIType::DisplayOrientation, DisplayOrientation>,
+        SEIMessageCreator<SEIType::MvcdScalableNesting, MvcdScalableNesting>,
+        SEIMessageCreator<SEIType::MvcdViewScalabilityInfo, MvcdViewScalabilityInfo>,
+        SEIMessageCreator<SEIType::DepthRepresentationInfo, DepthRepresentationInfo>,
+        SEIMessageCreator<SEIType::ThreeDimensionalReferenceDisplaysInfo, ThreeDimensionalReferenceDisplaysInfo>,
+        SEIMessageCreator<SEIType::DepthTiming, DepthTiming>,
+        SEIMessageCreator<SEIType::DepthSamplingInfo, DepthSamplingInfo>,
+        SEIMessageCreator<SEIType::ConstrainedDepthParameterSetIdentifier, ConstrainedDepthParameterSetIdentifier>,
+        //SEIMessageCreator<SEIType::GreenMetadata, GreenMetadata>,
+        //SEIMessageCreator<SEIType::MasteringDisplayColourVolume, MasteringDisplayColourVolume>,
+        //SEIMessageCreator<SEIType::ColourRemappingInfo, ColourRemappingInfo>,
+        //SEIMessageCreator<SEIType::ContentLightLevelInfo, ContentLightLevelInfo>,
+        //SEIMessageCreator<SEIType::AlternativeTransferCharacteristics, AlternativeTransferCharacteristics>,
+        //SEIMessageCreator<SEIType::AmbientViewingEnvironment, AmbientViewingEnvironment>,
+        //SEIMessageCreator<SEIType::ContentColourVolume, ContentColourVolume>,
+        //SEIMessageCreator<SEIType::EquirectangularProjection, EquirectangularProjection>,
+        //SEIMessageCreator<SEIType::CubemapProjection, CubemapProjection>,
+        //SEIMessageCreator<SEIType::SphereRotation, SphereRotation>,
+        //SEIMessageCreator<SEIType::RegionwisePacking, RegionwisePacking>,
+        //SEIMessageCreator<SEIType::OmniViewport, OmniViewport>,
+        //SEIMessageCreator<SEIType::AlternativeDepthInfo, AlternativeDepthInfo>,
+        //SEIMessageCreator<SEIType::SEIManifest, SEIManifest>,
+        //SEIMessageCreator<SEIType::SEIPrefixIndication, SEIPrefixIndication>,
+        SEIMessageCreator<SEIType::ReservedSEIMessage, ReservedSEIMessage>
+    >;
+
+}
+
+constexpr auto ttt(char a)
+{
+    return a;
+}
+
+struct TestType
+{
+    TestType(int, int){}
+};
+
+template<size_t N>
+struct AAA
+{
+    constexpr AAA() {}
+    constexpr operator int() const
+    {
+        return N;
+    }
+};
+
+template<size_t I, size_t C, size_t ...N>
+constexpr auto f(std::index_sequence<C, N...>)
+{
+    if constexpr (I == 3)
+    {
+        return I;
+    }
+    //return f<I - 1>(std::make_index_sequence<I - 1>{});
+    return 0;
+}
+
+auto test()
+{
+
+    std::unordered_map<SEIType, std::function<std::shared_ptr<std::uint8_t>>> map;
+    SEITypeMapping::Mapping::RegisterTypes(map);
+    
+    constexpr AAA<1> aaa;
+
+    constexpr std::index_sequence<3, 2, 1> c{};
+    constexpr auto c = SEITypeMapping::numberParamsToConstructImpl<TestType, 3>(c);
+
+    constexpr auto c = f<3>(std::make_index_sequence<3>{});
 }
 
 
