@@ -3,7 +3,7 @@
 
 struct MvcdViewScalabilityInfo
 {
-    std::uint32_t numOperationPointsMinus1 = 0;
+    std::uint16_t numOperationPointsMinus1 = 0;
     std::vector<OperationPoint> operationPoints;
 
     MvcdViewScalabilityInfo() = default;

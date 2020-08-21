@@ -5,7 +5,7 @@
 struct MvcdOp
 {
     std::uint8_t vuiMvcdTemporalId = 0;
-    std::uint8_t vuiMvcdNumTargetOutputViewsMinus1 = 0;
+    std::uint16_t vuiMvcdNumTargetOutputViewsMinus1 = 0;
     std::vector<VuiView> targetOutputViews;
 
     bool vuiMvcdTimingInfoPresentFlag = false;

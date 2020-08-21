@@ -4,7 +4,7 @@
 
 struct RecoveryPoint
 {
-    std::uint8_t recoveryFrameCnt = 0;
+    std::uint16_t recoveryFrameCnt = 0;
     bool exactMatchFlag = false;
     bool brokenLinkFlag = false;
     std::uint8_t changingSliceGroupIdc = 0;

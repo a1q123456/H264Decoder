@@ -48,7 +48,7 @@ struct BaseViewTemporalHrd
         }
     };
 
-    std::uint32_t numOfTemporalLayersInBaseViewMinus1 = 0;
+    std::uint16_t numOfTemporalLayersInBaseViewMinus1 = 0;
     std::vector<TemporalLayer> temporalLayersInBaseView;
 
     BaseViewTemporalHrd() = default;

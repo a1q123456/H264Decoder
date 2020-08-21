@@ -4,15 +4,15 @@
 
 struct SubSeqInfo
 {
-    std::uint8_t subSeqLayerNum = 0;
-    std::uint8_t subSeqId = 0;
+    std::uint16_t subSeqLayerNum = 0;
+    std::uint16_t subSeqId = 0;
 
     bool firstRefPicFlag = false;
     bool leadingNonRefPicFlag = false;
     bool lastPicFlag = false;
     bool subSeqFrameNumFlag = false;
 
-    std::uint8_t subSeqFrameNum = 0;
+    std::uint16_t subSeqFrameNum = 0;
 
     SubSeqInfo() = default;
     explicit SubSeqInfo(BitstreamReader& reader)

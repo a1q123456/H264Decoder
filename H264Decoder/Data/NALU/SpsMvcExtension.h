@@ -6,12 +6,12 @@
 
 struct SpsMvcExtension
 {
-    std::uint8_t numViewsMinus1 = 0;
-    std::vector<std::uint8_t> viewId;
+    std::uint16_t numViewsMinus1 = 0;
+    std::vector<std::uint16_t> viewId;
 
     std::vector<AnchorRef> anchorRefs;
     std::vector<AnchorRef> nonAnchorRefs;
-    std::uint8_t numLevelValuesSignalledMinus1 = 0;
+    std::uint16_t numLevelValuesSignalledMinus1 = 0;
     std::vector<SpsMvcLevelValuesSignalled> levelValuesSignalled;
 
     std::uint8_t mfcFormatIdc = 0;

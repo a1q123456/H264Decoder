@@ -3,11 +3,11 @@
 
 struct AnchorRef
 {
-    std::uint8_t numAnchorRefsL0 = 0;
-    std::vector<std::uint8_t> anchorRefL0;
+    std::uint16_t numAnchorRefsL0 = 0;
+    std::vector<std::uint16_t> anchorRefL0;
 
-    std::uint8_t numAnchorRefsL1 = 0;
-    std::vector<std::uint8_t> anchorRefl1;
+    std::uint16_t numAnchorRefsL1 = 0;
+    std::vector<std::uint16_t> anchorRefl1;
 
     AnchorRef() = default;
     explicit AnchorRef(BitstreamReader& reader)
@@ -17,7 +17,7 @@ struct AnchorRef
     }
 
 private:
-    void ReadAnchorRef(BitstreamReader& reader, std::uint8_t& num, std::vector<std::uint8_t>& ref)
+    void ReadAnchorRef(BitstreamReader& reader, std::uint16_t& num, std::vector<std::uint16_t>& ref)
     {
         num = reader.readExpoGlomb();
         for (auto i = 0; i < num; i++)

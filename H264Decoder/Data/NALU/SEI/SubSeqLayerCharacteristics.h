@@ -4,7 +4,7 @@
 
 struct SubSeqLayerCharacteristics
 {
-    std::uint8_t numSubSeqLayersMinus1 = 0;
+    std::uint16_t numSubSeqLayersMinus1 = 0;
     struct Data
     {
 

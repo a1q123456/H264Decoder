@@ -1,6 +1,8 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\SEI\SEIMessage.h>
 
+struct DecodingContext;
 
 struct MvcdScalableNesting
 {
@@ -38,11 +40,11 @@ struct MvcdScalableNesting
 
     bool operationPointFlag = false;
     bool allViewComponentsInAuFlag = false;
-    std::uint32_t numViewComponentsMinus1 = 0;
+    std::uint16_t numViewComponentsMinus1 = 0;
     std::vector<ViewComponent> viewComponents;
 
     bool seiOpTextureOnlyFlag = false;
-    std::uint32_t numViewComponentsOpMinus1 = 0;
+    std::uint16_t numViewComponentsOpMinus1 = 0;
     std::vector<ViewComponentOp> viewComponentOps;
 
     std::uint8_t seiOpTemporalId = 0;
@@ -52,39 +54,7 @@ struct MvcdScalableNesting
     SEIMessage seiMessage;
 
     MvcdScalableNesting() = default;
-    explicit MvcdScalableNesting(BitstreamReader& reader)
-    {
-        operationPointFlag = reader.readBits<bool, 1>();
-        if (!operationPointFlag)
-        {
-            allViewComponentsInAuFlag = reader.readBits<bool, 1>();
-            if (!allViewComponentsInAuFlag)
-            {
-                numViewComponentsMinus1 = reader.readExpoGlomb();
-                for (auto i = 0; i <= numViewComponentsMinus1; i++)
-                {
-                    viewComponents.emplace_back(reader);
-                }
-            }
-        }
-        else
-        {
-            seiOpTextureOnlyFlag = reader.readBits<bool, 1>();
-            numViewComponentsMinus1 = reader.readExpoGlomb();
-            for (auto i = 0; i <= numViewComponentsOpMinus1; i++)
-            {
-                viewComponentOps.emplace_back(reader);
-            }
-            seiOpTemporalId = reader.readBits<std::uint8_t, 3>();
-        }
-
-        while (!reader.byteAligned())
-        {
-            seiNestingZeroBit = reader.readBits<std::uint8_t, 1>();
-        }
-
-        // TODO: sei message
-    }
+    explicit MvcdScalableNesting(DecodingContext& context, BitstreamReader& reader, NALUnit& nalu);
 };
 
 

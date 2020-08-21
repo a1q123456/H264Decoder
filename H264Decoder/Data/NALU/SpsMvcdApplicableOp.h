@@ -6,11 +6,11 @@
 struct SpsMvcdApplicableOp
 {
     std::uint8_t applicableOpTemporalId = 0;
-    std::uint8_t applicableOpNumTargetViewsMinus1 = 0;
+    std::uint16_t applicableOpNumTargetViewsMinus1 = 0;
     std::vector<SpsMvcdApplicableOpTargetView> targetViews;
 
-    std::uint8_t applicableOpNumTextureViewsMinus1 = 0;
-    std::uint8_t applicableOpNumDepthViews = 0;
+    std::uint16_t applicableOpNumTextureViewsMinus1 = 0;
+    std::uint16_t applicableOpNumDepthViews = 0;
 
     SpsMvcdApplicableOp() = default;
     explicit SpsMvcdApplicableOp(BitstreamReader& reader)

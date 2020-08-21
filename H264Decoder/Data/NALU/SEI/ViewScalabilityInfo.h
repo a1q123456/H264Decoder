@@ -1,9 +1,10 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\SEI\OperationPoint.h>
 
 struct ViewScalabilityInfo
 {
-    std::uint32_t numOperationPointsMinus1 = 0;
+    std::uint16_t numOperationPointsMinus1 = 0;
     std::vector<OperationPoint> operationPoints;
 
     ViewScalabilityInfo() = default;

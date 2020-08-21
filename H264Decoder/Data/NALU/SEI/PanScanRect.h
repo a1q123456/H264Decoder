@@ -13,13 +13,13 @@ struct PanScanRect
 
     };
 
-    std::uint8_t panScanRectId = 0;
+    std::uint16_t panScanRectId = 0;
     bool panScanRectCancelFlag = false;
 
-    std::uint8_t panScanCntMinus1 = 0;
+    std::uint16_t panScanCntMinus1 = 0;
     std::vector<RectType> panScanRects;
 
-    std::uint8_t panScanRectRepetitionPeriod = 0;
+    std::uint16_t panScanRectRepetitionPeriod = 0;
 
     PanScanRect() = default;
     explicit PanScanRect(BitstreamReader& reader, int)

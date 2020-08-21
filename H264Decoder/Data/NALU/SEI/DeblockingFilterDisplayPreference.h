@@ -7,7 +7,7 @@ struct DeblockingFilterDisplayPreference
     bool deblockingDisplayPreferenceCancelFlag = false;
     bool displayPriorToDeblockingPreferredFlag = false;
     bool decFrameBufferingConstraintFlag = false;
-    std::uint8_t deblockingDisplayPreferenceRepetitionPeriod = 0;
+    std::uint16_t deblockingDisplayPreferenceRepetitionPeriod = 0;
 
     DeblockingFilterDisplayPreference() = default;
     explicit DeblockingFilterDisplayPreference(BitstreamReader& reader)

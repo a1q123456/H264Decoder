@@ -6,10 +6,10 @@ struct VspParam
 {
     struct Value
     {
-        std::uint8_t dispartyDiffWji = 0;
-        std::uint8_t dispartyDiffOji = 0;
-        std::uint8_t dispartyDiffWij = 0;
-        std::uint8_t dispartyDiffOij = 0;
+        std::uint16_t dispartyDiffWji = 0;
+        std::uint16_t dispartyDiffOji = 0;
+        std::uint16_t dispartyDiffWij = 0;
+        std::uint16_t dispartyDiffOij = 0;
     };
 
     std::vector<std::vector<Value>> values;

@@ -1,13 +1,14 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/VuiTimingInfo.h>
 
 
 struct VuiMvcOp
 {
     std::uint8_t vuiMvcTemporalId = 0;
-    std::uint8_t vuiMvcNumTargetOutputViewsMinus1 = 0;
+    std::uint16_t vuiMvcNumTargetOutputViewsMinus1 = 0;
 
-    std::vector<std::uint8_t> vuiMvcViewIds;
+    std::vector<std::uint16_t> vuiMvcViewIds;
     bool vuiMvcTimingInfoPresentFlag = false;
     VuiTimingInfo timingInfo;
     bool vuiMvcNalHrdParametersPresentFlag = false;

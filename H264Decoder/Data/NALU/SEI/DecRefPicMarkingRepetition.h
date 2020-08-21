@@ -5,7 +5,7 @@
 struct DecRefPicMarkingRepetition
 {
     bool originalIdrFlag = false;
-    std::uint8_t originalFrameNum = 0;
+    std::uint16_t originalFrameNum = 0;
     bool originalFieldPicFlag = false;
     bool originalBottomFieldFlag = false;
 

@@ -4,8 +4,8 @@
 
 struct OperationPointsNotPresent
 {
-    std::uint32_t numOperationPoints = 0;
-    std::vector<std::uint32_t> operationPointNotPresentId;
+    std::uint16_t numOperationPoints = 0;
+    std::vector<std::uint16_t> operationPointNotPresentId;
 
     OperationPointsNotPresent() = default;
     explicit OperationPointsNotPresent(BitstreamReader& reader)

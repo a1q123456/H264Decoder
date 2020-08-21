@@ -4,7 +4,7 @@
 
 struct FullFrameSnapshot
 {
-    std::uint8_t snapshotId = 0;
+    std::uint16_t snapshotId = 0;
 
     FullFrameSnapshot() = default;
     explicit FullFrameSnapshot(BitstreamReader& reader)

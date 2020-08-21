@@ -1,6 +1,7 @@
 #pragma once
 #include <IO/BitstreamReader.h>
 #include "HrdParameters.h"
+#include <Data\NALU\VuiTimingInfo.h>
 
 
 struct VuiExtInfo

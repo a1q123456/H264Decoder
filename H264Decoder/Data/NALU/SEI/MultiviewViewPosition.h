@@ -4,8 +4,8 @@
 
 struct MultiviewViewPosition
 {
-    std::uint32_t numViewsMinus1 = 0;
-    std::vector<std::uint32_t> viewPosition;
+    std::uint16_t numViewsMinus1 = 0;
+    std::vector<std::uint16_t> viewPosition;
 
     bool multiViewPositionExtensionFlag = false;
 

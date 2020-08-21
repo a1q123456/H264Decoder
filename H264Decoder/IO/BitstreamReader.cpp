@@ -12,15 +12,15 @@ void BitstreamReader::advancePos(int n)
     internalReadBits(n, false, false);
 }
 
-std::uint32_t BitstreamReader::readExpoGlomb()
+std::uint16_t BitstreamReader::readExpoGlomb()
 {
     auto len = probeLeadingZeros();
     auto val = internalReadBits(len + 1, false, false);
-    assert(val - 1 <= std::numeric_limits<std::uint32_t>::max());
-    return static_cast<std::uint32_t>(val - 1);
+    assert(val - 1 <= std::numeric_limits<std::uint16_t>::max());
+    return static_cast<std::uint16_t>(val - 1);
 }
 
-std::int32_t BitstreamReader::readSignedExpoGlomb()
+std::int16_t BitstreamReader::readSignedExpoGlomb()
 {
     auto val = readExpoGlomb();
     std::int64_t ret;
@@ -30,9 +30,9 @@ std::int32_t BitstreamReader::readSignedExpoGlomb()
     }
     ret = val / -2;
 
-    assert(ret <= std::numeric_limits<std::int32_t>::max());
-    assert(ret >= std::numeric_limits<std::int32_t>::min());
-    return static_cast<std::int32_t>(ret);
+    assert(ret <= std::numeric_limits<std::int16_t>::max());
+    assert(ret >= std::numeric_limits<std::int16_t>::min());
+    return static_cast<std::int16_t>(ret);
 
 }
 

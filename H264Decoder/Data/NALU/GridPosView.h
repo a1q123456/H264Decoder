@@ -4,9 +4,9 @@
 
 struct GridPosView
 {
-    std::uint8_t gridPosViewId = 0;
-    std::int8_t gridPosX;
-    std::int8_t gridPosY;
+    std::uint16_t gridPosViewId = 0;
+    std::int16_t gridPosX;
+    std::int16_t gridPosY;
 
     GridPosView() = default;
     explicit GridPosView(BitstreamReader& reader)

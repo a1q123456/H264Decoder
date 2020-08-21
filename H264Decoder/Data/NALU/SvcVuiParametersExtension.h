@@ -5,7 +5,7 @@
 
 struct SvcVuiParametersExtension
 {
-    std::uint8_t vuiExtNumEntriesMinus1 = 0;
+    std::uint16_t vuiExtNumEntriesMinus1 = 0;
 
     std::vector<VuiExtInfo> vuiExtInfo;
 

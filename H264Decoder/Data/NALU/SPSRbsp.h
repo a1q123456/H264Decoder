@@ -4,6 +4,7 @@
 #include <Data/NALU/RbspTrailingBits.h>
 
 struct DecodingContext;
+struct NALUnit;
 
 struct SPSRbsp
 {
@@ -12,7 +13,7 @@ struct SPSRbsp
     RbspTrailingBits rbspTrailingBits;
 
     SPSRbsp() = default;
-    explicit SPSRbsp(DecodingContext& context, BitstreamReader& reader);
+    explicit SPSRbsp(DecodingContext& context, BitstreamReader& reader, NALUnit&);
 };
 
 

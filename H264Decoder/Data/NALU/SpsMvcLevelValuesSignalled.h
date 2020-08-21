@@ -6,7 +6,7 @@
 struct SpsMvcLevelValuesSignalled
 {
     std::uint8_t levelIdc = 0;
-    std::uint8_t numApplicableOpsMinus1 = 0;
+    std::uint16_t numApplicableOpsMinus1 = 0;
     std::vector<SpsMvcApplicableOps> applicableOps;
 
     SpsMvcLevelValuesSignalled() = default;

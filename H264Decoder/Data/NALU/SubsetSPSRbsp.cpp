@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "SubsetSPSRbsp.h"
+#include <Data/DecodingContext.h>
 
 SubsetSPSRbsp::SubsetSPSRbsp(DecodingContext context, BitstreamReader& reader)
 {

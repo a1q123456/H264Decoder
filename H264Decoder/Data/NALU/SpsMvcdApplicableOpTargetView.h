@@ -4,7 +4,7 @@
 
 struct SpsMvcdApplicableOpTargetView
 {
-    std::uint8_t applicableOpTargetViewId = 0;
+    std::uint16_t applicableOpTargetViewId = 0;
     bool applicableOpDepthFlag = false;
     bool applicableOpTextureFlag = false;
 

@@ -34,7 +34,7 @@ struct RedundantPicProperty
             };
 
             std::uint8_t qualityId = 0;
-            std::uint32_t numRedundantPicsMinus1 = 0;
+            std::uint16_t numRedundantPicsMinus1 = 0;
             std::vector<RedundantPic> redundantPics;
 
             QId() = default;
@@ -51,7 +51,7 @@ struct RedundantPicProperty
         };
 
         std::uint8_t dependencyId = 0;
-        std::uint32_t numQIdsMinus1 = 0;
+        std::uint16_t numQIdsMinus1 = 0;
         std::vector<QId> qIds;
 
         DId() = default;
@@ -66,7 +66,7 @@ struct RedundantPicProperty
         }
     };
 
-    std::uint32_t numDIdsMinus1 = 0;
+    std::uint16_t numDIdsMinus1 = 0;
     std::vector<DId> dIds;
 
     RedundantPicProperty() = default;

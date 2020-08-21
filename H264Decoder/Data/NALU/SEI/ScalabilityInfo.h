@@ -8,9 +8,9 @@ struct ScalabilityInfo
     {
         struct Roi
         {
-            std::uint8_t firstMbInRoi = 0;
-            std::uint8_t roiWidthInMbsMinus1 = 0;
-            std::uint8_t roiHeightInMbsMinus1 = 0;
+            std::uint16_t firstMbInRoi = 0;
+            std::uint16_t roiWidthInMbsMinus1 = 0;
+            std::uint16_t roiHeightInMbsMinus1 = 0;
 
             Roi() = default;
             explicit Roi(BitstreamReader& reader)
@@ -38,7 +38,7 @@ struct ScalabilityInfo
             }
         };
 
-        std::uint8_t layerId = 0;
+        std::uint16_t layerId = 0;
         std::uint8_t priorityId = 0;
         bool discardableFlag = false;
         std::uint8_t dependencyId = 0;
@@ -69,46 +69,46 @@ struct ScalabilityInfo
         std::uint8_t constantFrmRateIdc = 0;
         std::uint16_t avgFrmRate = 0;
 
-        std::uint8_t frmWidthInMbsMinus1 = 0;
-        std::uint8_t frmHeightInMbsMinus1 = 0;
+        std::uint16_t frmWidthInMbsMinus1 = 0;
+        std::uint16_t frmHeightInMbsMinus1 = 0;
 
-        std::uint8_t baseRegionLayerId = 0;
+        std::uint16_t baseRegionLayerId = 0;
         bool dynamicRectFlag = false;
         std::uint16_t horizontalOffset = 0;
         std::uint16_t verticalOffset = 0;
         std::uint16_t regionWidth = 0;
         std::uint16_t regionHeight = 0;
 
-        std::uint8_t roiId = 0;
+        std::uint16_t roiId = 0;
 
         bool iroiGridFlag = false;
-        std::uint8_t gridWidthInMbsMinus1 = 0;
-        std::uint8_t gridHeightInMbsMinus1 = 0;
-        std::uint8_t numRoisMinus1 = 0;
+        std::uint16_t gridWidthInMbsMinus1 = 0;
+        std::uint16_t gridHeightInMbsMinus1 = 0;
+        std::uint16_t numRoisMinus1 = 0;
         std::vector<Roi> rois;
 
-        std::uint8_t numDirectlyDependentLayers = 0;
-        std::vector<std::uint8_t> directlyDependentLayerIdDeltaMinus1;
-        std::uint8_t layerDependencyInfoSrcLayerIdDelta = 0;
+        std::uint16_t numDirectlyDependentLayers = 0;
+        std::vector<std::uint16_t> directlyDependentLayerIdDeltaMinus1;
+        std::uint16_t layerDependencyInfoSrcLayerIdDelta = 0;
 
-        std::uint8_t numSeqParameterSets = 0;
-        std::vector<std::uint8_t> seqParameterSetIdDelta;
+        std::uint16_t numSeqParameterSets = 0;
+        std::vector<std::uint16_t> seqParameterSetIdDelta;
 
-        std::uint8_t numSubsetSeqParameterSets = 0;
-        std::vector<std::uint8_t> subsetSeqParameterSetIdDelta;
-        std::uint8_t numPicParameterSetsMinus1 = 0;
-        std::vector<std::uint32_t> picParameterSetIdDelta;
-        std::uint8_t parameterSetsInfoSrcLayerIdDelta = 0;
+        std::uint16_t numSubsetSeqParameterSets = 0;
+        std::vector<std::uint16_t> subsetSeqParameterSetIdDelta;
+        std::uint16_t numPicParameterSetsMinus1 = 0;
+        std::vector<std::uint16_t> picParameterSetIdDelta;
+        std::uint16_t parameterSetsInfoSrcLayerIdDelta = 0;
 
         bool motionVectorsOverPicBoundariesFlag = false;
-        std::uint8_t maxBytesPerPicDenom = 0;
-        std::uint8_t maxBitsPerMbDenom = 0;
-        std::uint8_t log2MaxMvLengthHorizontal = 0;
-        std::uint8_t log2MaxMvLengthVertical = 0;
-        std::uint8_t maxNumReorderFrames = 0;
-        std::uint8_t maxDecFrameBuffering = 0;
+        std::uint16_t maxBytesPerPicDenom = 0;
+        std::uint16_t maxBitsPerMbDenom = 0;
+        std::uint16_t log2MaxMvLengthHorizontal = 0;
+        std::uint16_t log2MaxMvLengthVertical = 0;
+        std::uint16_t maxNumReorderFrames = 0;
+        std::uint16_t maxDecFrameBuffering = 0;
 
-        std::uint8_t conversionTypeIdc = 0;
+        std::uint16_t conversionTypeIdc = 0;
         RewritingInfo rewritingInfo[2];
 
 
@@ -254,7 +254,7 @@ struct ScalabilityInfo
     {
         struct PR
         {
-            std::uint8_t prId = 0;
+            std::uint16_t prId = 0;
             std::uint32_t prProfileLevelIdc = 0;
             std::uint16_t prAvgBitrate = 0;
             std::uint16_t prMaxBitrate = 0;
@@ -270,7 +270,7 @@ struct ScalabilityInfo
         };
 
         std::uint8_t prDependencyId = 0;
-        std::uint8_t prNumMinus1 = 0;
+        std::uint16_t prNumMinus1 = 0;
 
         std::vector<PR> prs;
 
@@ -292,10 +292,10 @@ struct ScalabilityInfo
     bool priorityLayerInfoPresentFlag = false;
     bool priorityIdSettingsFlag;
 
-    std::uint8_t numLayersMinus1 = 0;
+    std::uint16_t numLayersMinus1 = 0;
     std::vector<Layer> layers;
 
-    std::uint8_t prNumDIdsMinus1 = 0;
+    std::uint16_t prNumDIdsMinus1 = 0;
     std::vector<DId> dIds;
 
     std::vector<Byte> priorityIdSettingUri;

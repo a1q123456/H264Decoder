@@ -10,10 +10,10 @@ struct SeqParameterSetSvcExtension
     std::uint8_t chromaPhaseYPlus1 = 0;
     bool seqRefLayerChromaPhaseXPlus1Flag = false;
     std::uint8_t seqRefLayerChromaPhaseYPlus1 = 0;
-    std::int8_t seqScaledRefLayerLeftOffset;
-    std::int8_t seqScaledRefLayerTopOffset;
-    std::int8_t seqScaledRefLayerRightOffset;
-    std::int8_t seqScaledRefLayerBottomOffset;
+    std::int16_t seqScaledRefLayerLeftOffset = 0;
+    std::int16_t seqScaledRefLayerTopOffset = 0;
+    std::int16_t seqScaledRefLayerRightOffset = 0;
+    std::int16_t seqScaledRefLayerBottomOffset = 0;
     bool seqTcoeffLevelPredictionFlag = false;
     bool adaptiveTcoeffLevelPredictionFlag = false;
     bool sliceHeaderRestrictionFlag = false;

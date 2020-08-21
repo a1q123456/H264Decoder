@@ -16,7 +16,7 @@ private:
     template<typename T>
     void readRbsp(BitstreamReader& rbspReader, NALUnit& out)
     {
-        out.rbsp = std::shared_ptr<std::uint8_t>(reinterpret_cast<std::uint8_t*>(new T(context, rbspReader)), [](std::uint8_t* ptr)
+        out.rbsp = std::shared_ptr<std::uint8_t>(reinterpret_cast<std::uint8_t*>(new T(context, rbspReader, out)), [](std::uint8_t* ptr)
             {
                 auto obj = reinterpret_cast<T*>(ptr);
                 delete obj;

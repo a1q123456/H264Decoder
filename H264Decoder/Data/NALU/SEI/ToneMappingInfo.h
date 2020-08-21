@@ -10,12 +10,12 @@ struct ToneMappingInfo
         std::uint16_t targetPivotValue = 0;
     };
 
-    std::uint8_t toneMapId = 0;
+    std::uint16_t toneMapId = 0;
     bool toneMapCancelFlag = false;
-    std::uint8_t toneMapRepetitionPeriod = 0;
+    std::uint16_t toneMapRepetitionPeriod = 0;
     std::uint8_t codedDataBitDepth = 0;
     std::uint8_t targetBitDepth = 0;
-    std::uint8_t toneMapModelId = 0;
+    std::uint16_t toneMapModelId = 0;
     std::uint32_t minValue = 0;
     std::uint32_t maxValue = 0;
 

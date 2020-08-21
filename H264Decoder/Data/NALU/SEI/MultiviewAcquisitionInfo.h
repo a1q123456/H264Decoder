@@ -1,5 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/DecimalValue.h>
 
 
 struct MultiviewAcquisitionInfo
@@ -60,7 +61,7 @@ struct MultiviewAcquisitionInfo
         }
     };
 
-    std::uint32_t numViewsMinus1 = 0;
+    std::uint16_t numViewsMinus1 = 0;
     bool intrinsicParamFlag = false;
     bool extrinsicParamFlag = false;
 

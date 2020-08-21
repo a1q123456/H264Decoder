@@ -10,7 +10,7 @@ struct BufferingPeriod
         std::uint8_t initialCpbRemovalDelayOffset = 0;
 
     };
-    std::uint8_t spsId = 0;
+    std::uint16_t spsId = 0;
     std::vector<Data> nalHrdBpData;
     std::vector<Data> vclHrdBpData;
 

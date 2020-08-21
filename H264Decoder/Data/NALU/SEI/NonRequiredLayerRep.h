@@ -20,7 +20,7 @@ struct NonRequiredLayerRep
         };
 
         std::uint8_t entryDependencyId = 0;
-        std::uint32_t numNonRequiredLayerRepsMinus1 = 0;
+        std::uint16_t numNonRequiredLayerRepsMinus1 = 0;
         std::vector<NonRequiredLayerRep> nonRequiredLayerReps;
 
         InfoEntry() = default;

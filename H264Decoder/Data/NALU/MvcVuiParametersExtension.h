@@ -5,7 +5,7 @@
 
 struct MvcVuiParametersExtension
 {
-    std::uint8_t vuiMvcNumOpsMinus1 = 0;
+    std::uint16_t vuiMvcNumOpsMinus1 = 0;
     std::vector<VuiMvcOp> vuiMvcOps;
 
     MvcVuiParametersExtension() = default;

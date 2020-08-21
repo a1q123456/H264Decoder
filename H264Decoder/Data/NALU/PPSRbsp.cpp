@@ -1,7 +1,7 @@
 #include "PPSRbsp.h"
 #include <Data/DecodingContext.h>
 
-PPSRbsp::PPSRbsp(DecodingContext& context, BitstreamReader& reader)
+PPSRbsp::PPSRbsp(DecodingContext& context, BitstreamReader& reader, NALUnit&)
 {
     ppsId = reader.readExpoGlomb();
     spsId = reader.readExpoGlomb();

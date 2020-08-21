@@ -5,12 +5,12 @@ struct SubSeqCharacteristics
 {
     struct ReferencedSubSeq
     {
-        std::uint8_t refSubSeqLayerNum = 0;
-        std::uint8_t refSubSeqId = 0;
+        std::uint16_t refSubSeqLayerNum = 0;
+        std::uint16_t refSubSeqId = 0;
         std::uint8_t refSubSeqDirection = 0;
     };
-    std::uint8_t subSeqLayerNum = 0;
-    std::uint8_t subSeqId = 0;
+    std::uint16_t subSeqLayerNum = 0;
+    std::uint16_t subSeqId = 0;
     bool durationFlag = false;
     std::uint32_t subSeqDuration = 0;
     bool averageRateFlag = false;
@@ -18,7 +18,7 @@ struct SubSeqCharacteristics
     std::uint16_t averageBitRate = 0;
     std::uint16_t averageFrameRate = 0;
 
-    std::uint8_t numReferencedSubSeqs = 0;
+    std::uint16_t numReferencedSubSeqs = 0;
     std::vector<ReferencedSubSeq> referencedSubSeqs;
 
     SubSeqCharacteristics() = default;

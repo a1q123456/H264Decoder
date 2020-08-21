@@ -5,18 +5,18 @@ struct SparePic
 {
     struct Data
     {
-        std::uint8_t deltaSpareFrameNum = 0;
+        std::uint16_t deltaSpareFrameNum = 0;
         bool spareBottomFieldFlag = false;
-        std::uint8_t spareAreaIdc = 0;
+        std::uint16_t spareAreaIdc = 0;
         std::vector<BoolType> spareUnitFlag;
 
-        std::vector<std::uint8_t> zeroRunLength;
+        std::vector<std::uint16_t> zeroRunLength;
     };
 
-    std::uint8_t targetFrameNum = 0;
+    std::uint16_t targetFrameNum = 0;
     bool spareFieldFlag = false;
     bool targetBottomFieldFlag = false;
-    std::uint8_t numSparePicMinus1 = 0;
+    std::uint16_t numSparePicMinus1 = 0;
 
     SparePic() = default;
     explicit SparePic(DecodingContext& ctx, BitstreamReader& reader)
@@ -36,7 +36,7 @@ struct SparePic
             {
                 data.spareBottomFieldFlag = reader.readBits<bool, 1>();
             }
-            spareFieldFlag = reader.readExpoGlomb();
+            data.spareAreaIdc = reader.readExpoGlomb();
             if (data.spareAreaIdc == 1)
             {
                 for (auto j = 0; j < ctx.getPicSizeInMapUnits(); j++)

@@ -1,5 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/SEI/DepthRepresentationSEIElement.h>
 
 
 struct DepthRepresentationInfo
@@ -58,7 +59,7 @@ struct DepthRepresentationInfo
 
     std::uint32_t depthRepresentationType = 0;
     std::vector<ViewInfo> viewInfos;
-    std::uint32_t depthNonlinearRepresentationNumMinus1 = 0;
+    std::uint16_t depthNonlinearRepresentationNumMinus1 = 0;
     std::vector<std::uint32_t> depthNonlinearRepresentationModel;
 
     DepthRepresentationInfo() = default;

@@ -4,8 +4,8 @@
 
 struct PostFilterHint
 {
-    std::uint8_t filterHintSizeY = 0;
-    std::uint8_t filterHintSizeX = 0;
+    std::uint16_t filterHintSizeY = 0;
+    std::uint16_t filterHintSizeX = 0;
     std::uint8_t filterHintType = 0;
     std::vector<std::vector<std::int16_t>> filterHints[3];
     bool additionalExtensionFlag = false;

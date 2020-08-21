@@ -32,7 +32,7 @@ struct FilmGrainCharacteristics
     std::uint8_t log2ScaleFactor = 0;
     bool compModelPresentFlag[3] = { 0 };
     CompModel compModels[3]{};
-    std::uint8_t filmGrainCharacteristicsRepetitionPreiod = 0;
+    std::uint16_t filmGrainCharacteristicsRepetitionPreiod = 0;
 
     FilmGrainCharacteristics() = default;
     explicit FilmGrainCharacteristics(BitstreamReader& reader)

@@ -1,6 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
-
+#include <Data/NALU/SEI/DepthTimingOffset.h>
 
 struct DepthTiming
 {

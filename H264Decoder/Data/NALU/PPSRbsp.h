@@ -4,6 +4,7 @@
 #include <Data/NALU/ScalingList.h>
 
 struct DecodingContext;
+struct NALUnit;
 
 struct PPSRbsp
 {
@@ -48,7 +49,7 @@ struct PPSRbsp
     RbspTrailingBits rbspTrailingBits;
 
     PPSRbsp() = default;
-    explicit PPSRbsp(DecodingContext& context, BitstreamReader& reader);
+    explicit PPSRbsp(DecodingContext& context, BitstreamReader& reader, NALUnit&);
 };
 
 

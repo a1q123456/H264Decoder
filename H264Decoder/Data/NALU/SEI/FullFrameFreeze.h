@@ -4,7 +4,7 @@
 
 struct FullFrameFreeze
 {
-    std::uint8_t fullFrameFreezeRepetitionPreiod = 0;
+    std::uint16_t fullFrameFreezeRepetitionPreiod = 0;
 
     FullFrameFreeze() = default;
     explicit FullFrameFreeze(BitstreamReader& reader)

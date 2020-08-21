@@ -71,8 +71,8 @@ public:
         return static_cast<T>(internalReadBits(N, false, false));
     }
     
-    std::uint32_t readExpoGlomb();
-    std::int32_t readSignedExpoGlomb();
+    std::uint16_t readExpoGlomb();
+    std::int16_t readSignedExpoGlomb();
 
     bool moreData() const noexcept;
 

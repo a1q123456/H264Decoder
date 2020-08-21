@@ -1,6 +1,9 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALUnit.h>
+#include <Data/NALU/SEI/SEIMessage.h>
 
+struct DecodingContext;
 
 struct MvcScalableNesting
 {
@@ -18,36 +21,7 @@ struct MvcScalableNesting
     SEIMessage seiMessage;
 
     MvcScalableNesting() = default;
-    explicit MvcScalableNesting(BitstreamReader& reader)
-    {
-        operationPointFlag = reader.readBits<bool, 1>();
-        if (!operationPointFlag)
-        {
-            allViewComponentsInAuFlag = reader.readBits<bool, 1>();
-            if (!allViewComponentsInAuFlag)
-            {
-                numViewComponentsMinus1 = reader.readExpoGlomb();
-                for (auto i = 0; i <= numViewComponentsMinus1; i++)
-                {
-                    seiViewId.emplace_back(reader.readBits<std::uint16_t, 10>());
-                }
-            }
-        }
-        else
-        {
-            numViewComponentsOpMinus1 = reader.readExpoGlomb();
-            for (auto i = 0; i <= numViewComponentsOpMinus1; i++)
-            {
-                seiOpViewId.emplace_back(reader.readBits<std::uint16_t, 10>());
-            }
-            seiOpTemporalId = reader.readBits<std::uint8_t, 3>();
-        }
-        while (!reader.byteAligned())
-        {
-            reader.readBits<std::uint8_t, 1>();
-        }
-        // TODO sei message
-    }
+    explicit MvcScalableNesting(BitstreamReader& reader, DecodingContext& context, NALUnit& nalu);
 };
 
 

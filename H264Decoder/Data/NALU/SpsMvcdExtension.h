@@ -7,13 +7,13 @@
 
 struct SpsMvcdExtension
 {
-    std::uint8_t numViewsMinus1 = 0;
+    std::uint16_t numViewsMinus1 = 0;
     std::vector<VuiView> depthViews;
 
     std::vector<AnchorRef> anchorRefs;
     std::vector<AnchorRef> nonAnchorRefs;
 
-    std::uint8_t numLevelValuesSignalledMinus1 = 0;
+    std::uint16_t numLevelValuesSignalledMinus1 = 0;
     std::vector<SpsMvcdLevelValuesSignalled> levelValuesSignalled;
 
     bool mvcdVuiParametersPresentFlag = false;

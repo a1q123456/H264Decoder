@@ -6,8 +6,8 @@ struct NonRequiredViewComponent
 {
     struct InfoEntry
     {
-        std::uint32_t viewOrderIndex = 0;
-        std::uint32_t numNonRequiredViewComponentsMinus1 = 0;
+        std::uint16_t viewOrderIndex = 0;
+        std::uint16_t numNonRequiredViewComponentsMinus1 = 0;
         std::vector<std::uint32_t> indexDeltaMinus1;
 
         InfoEntry() = default;
@@ -21,7 +21,7 @@ struct NonRequiredViewComponent
             }
         }
     };
-    std::uint32_t numInfoEntries = 0;
+    std::uint16_t numInfoEntries = 0;
     std::vector<InfoEntry> infoEntries;
 
     NonRequiredViewComponent() = default;

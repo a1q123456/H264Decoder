@@ -25,8 +25,8 @@ struct VuiParameters
     std::uint8_t matrixCoefficients = 0;
 
     bool chromaLocInfoPresentFlag = false;
-    std::uint8_t chromaSampleLocTypeTopField = 0;
-    std::uint8_t chromaSampleLocTypeBottomField = 0;
+    std::uint16_t chromaSampleLocTypeTopField = 0;
+    std::uint16_t chromaSampleLocTypeBottomField = 0;
 
     bool timingInfoPresentFlag = false;
     VuiTimingInfo timingInfo;
@@ -41,12 +41,12 @@ struct VuiParameters
     bool bitstreamRestrictionFlag = false;
 
     bool motionVectorsOverPicBoundariesFlag = false;
-    std::uint8_t maxBytesPerPicDenom = 0;
-    std::uint8_t maxBitsPerMbDenom = 0;
-    std::uint8_t log2MaxMvLengthHorizontal = 0;
-    std::uint8_t log2MaxMvLengthVertical = 0;
-    std::uint8_t numRecorderFrames = 0;
-    std::uint8_t maxDecFrameBuffering = 0;
+    std::uint16_t maxBytesPerPicDenom = 0;
+    std::uint16_t maxBitsPerMbDenom = 0;
+    std::uint16_t log2MaxMvLengthHorizontal = 0;
+    std::uint16_t log2MaxMvLengthVertical = 0;
+    std::uint16_t numRecorderFrames = 0;
+    std::uint16_t maxDecFrameBuffering = 0;
 
     VuiParameters() = default;
     explicit VuiParameters(BitstreamReader& rbspReader)

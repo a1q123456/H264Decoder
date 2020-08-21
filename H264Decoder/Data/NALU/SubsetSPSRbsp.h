@@ -6,6 +6,8 @@
 #include <Data\NALU\MvcVuiParametersExtension.h>
 #include <Data\NALU\SpsMvcdExtension.h>
 #include <Data\NALU\Sps3DavcExtension.h>
+#include <Data\NALU\SPSData.h>
+#include <Data\NALU\RbspTrailingBits.h>
 
 
 struct SubsetSPSRbsp

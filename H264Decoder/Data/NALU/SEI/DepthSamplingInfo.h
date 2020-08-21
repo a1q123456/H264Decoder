@@ -1,5 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/SEI/DepthGridPosition.h>
 
 struct DepthSamplingInfo
 {
@@ -19,11 +20,11 @@ struct DepthSamplingInfo
     std::uint16_t dttsrXMul = 0;
     std::uint8_t dttsrXDp = 0;
     std::uint16_t dttsrYMul = 0;
-    std::uint8_t dttsrXDp = 0;
+    std::uint8_t dttsrYDp = 0;
 
     bool perViewDepthGridPosFlag = false;
 
-    std::uint32_t numVideoPlusDepthViewsMinus1 = 0;
+    std::uint16_t numVideoPlusDepthViewsMinus1 = 0;
     std::vector<VideoPlusDepthView> videoPlusDepthViews;
 
     DepthGridPosition depthGridPosition;

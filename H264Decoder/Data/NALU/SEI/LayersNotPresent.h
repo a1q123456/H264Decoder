@@ -4,7 +4,7 @@
 
 struct LayersNotPresent
 {
-    std::uint32_t numLayers = 0;
+    std::uint16_t numLayers = 0;
     std::vector<std::uint32_t> layerId;
 
     LayersNotPresent() = default;

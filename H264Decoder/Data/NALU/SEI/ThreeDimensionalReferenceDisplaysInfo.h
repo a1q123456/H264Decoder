@@ -1,5 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/DecimalValue.h>
 
 
 struct ThreeDimensionalReferenceDisplaysInfo
@@ -74,11 +75,11 @@ struct ThreeDimensionalReferenceDisplaysInfo
         }
     };
 
-    std::uint32_t precRefBaseline = 0;
-    std::uint32_t precRefDisplayWidth = 0;
+    std::uint16_t precRefBaseline = 0;
+    std::uint16_t precRefDisplayWidth = 0;
     bool refViewingDistanceFlag = false;
-    std::uint32_t precRefViewingDist = 0;
-    std::uint32_t numRefDisplaysMinus1 = 0;
+    std::uint16_t precRefViewingDist = 0;
+    std::uint16_t numRefDisplaysMinus1 = 0;
     std::vector<RefDisplay> refDisplays;
     bool threeDimensionalReferenceDisplaysExtensionFlag = false;
 

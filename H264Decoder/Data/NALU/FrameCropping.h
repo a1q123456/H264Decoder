@@ -4,10 +4,10 @@
 
 struct FrameCropping
 {
-    std::uint8_t frameCropLeftOffset = 0;
-    std::uint8_t frameCropRightOffset = 0;
-    std::uint8_t frameCropTopOffset = 0;
-    std::uint8_t frameCropBottomOffset = 0;
+    std::uint16_t frameCropLeftOffset = 0;
+    std::uint16_t frameCropRightOffset = 0;
+    std::uint16_t frameCropTopOffset = 0;
+    std::uint16_t frameCropBottomOffset = 0;
 
     FrameCropping() = default;
     explicit FrameCropping(BitstreamReader& rbspReader)

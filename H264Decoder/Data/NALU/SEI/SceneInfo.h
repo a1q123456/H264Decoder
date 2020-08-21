@@ -5,9 +5,9 @@
 struct SceneInfo
 {
     bool sceneInfoPresentFlag = false;
-    std::uint8_t sceneId = 0;
-    std::uint8_t sceneTransitionType = 0;
-    std::uint8_t secondSceneId = 0;
+    std::uint16_t sceneId = 0;
+    std::uint16_t sceneTransitionType = 0;
+    std::uint16_t secondSceneId = 0;
 
     SceneInfo() = default;
     explicit SceneInfo(BitstreamReader& reader)

@@ -9,11 +9,11 @@ struct SEIRbsp
     RbspTrailingBits rbspTrailingBits;
 
     SEIRbsp() = default;
-    explicit SEIRbsp(DecodingContext& context, BitstreamReader& reader)
+    explicit SEIRbsp(DecodingContext& context, BitstreamReader& reader, NALUnit& nalu)
     {
         do
         {
-            seiMessage.emplace_back(context, reader);
+            seiMessage.emplace_back(context, reader, nalu);
         } while (reader.moreData());
     }
 };

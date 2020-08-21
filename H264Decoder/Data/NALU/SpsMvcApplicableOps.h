@@ -5,9 +5,9 @@
 struct SpsMvcApplicableOps
 {
     std::uint8_t applicableOpTemproalId = 0;
-    std::uint8_t applicableOpNumTargetViewsMinus1 = 0;
-    std::vector<std::uint8_t> applicableOpTargetViewIds;
-    std::uint8_t applicableOpNumViewsMinus1 = 0;
+    std::uint16_t applicableOpNumTargetViewsMinus1 = 0;
+    std::vector<std::uint16_t> applicableOpTargetViewIds;
+    std::uint16_t applicableOpNumViewsMinus1 = 0;
 
     SpsMvcApplicableOps() = default;
     explicit SpsMvcApplicableOps(BitstreamReader& reader)

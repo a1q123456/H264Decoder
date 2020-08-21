@@ -3,12 +3,12 @@
 
 struct MotionConstrainedSliceGroupSet
 {
-    std::uint8_t numSliceGroupsInSetMinus1 = 0;
+    std::uint16_t numSliceGroupsInSetMinus1 = 0;
     std::vector<std::uint16_t> sliceGroupIds;
 
     bool exactSampleValueMatchFlag = false;
     bool panScanRectFlag = false;
-    std::uint8_t panScanRectId = 0;
+    std::uint16_t panScanRectId = 0;
 
     MotionConstrainedSliceGroupSet() = default;
     explicit MotionConstrainedSliceGroupSet(DecodingContext& ctx, BitstreamReader& reader)

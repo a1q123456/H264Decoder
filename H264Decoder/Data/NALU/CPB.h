@@ -4,8 +4,8 @@
 
 struct CPB
 {
-    std::uint32_t bitRateValueMinus1 = 0;
-    std::uint32_t cpbSizeValueMinus1 = 0;
+    std::uint16_t bitRateValueMinus1 = 0;
+    std::uint16_t cpbSizeValueMinus1 = 0;
     bool cbrFlag = false;
 };
 

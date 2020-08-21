@@ -1,6 +1,9 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALUnit.h>
+#include <Data/NALU/SEI/SEIMessage.h>
 
+struct DecodingContext;
 
 struct ScalableNesting
 {
@@ -27,31 +30,7 @@ struct ScalableNesting
     std::vector<SEIMessage> seiMessage;
 
     ScalableNesting() = default;
-    explicit ScalableNesting(BitstreamReader& reader)
-    {
-        allLayerRepresentationsInAuFlag = reader.readBits<bool, 1>();
-        if (!allLayerRepresentationsInAuFlag)
-        {
-            numLayerRepresentationsMinus1 = reader.readExpoGlomb();
-            for (auto i = 0; i <= numLayerRepresentationsMinus1; i++)
-            {
-                layerRepresentations.emplace_back(reader);
-            }
-            seiTemporalId = reader.readBits<std::uint8_t, 3>();
-        }
-        while (!reader.byteAligned())
-        {
-            seiNestingZeroBit = reader.readBits<std::uint8_t, 1>();
-            if (seiNestingZeroBit != 0)
-            {
-                throw std::runtime_error("not supported");
-            }
-        }
-        do
-        {
-            // TODO sei message
-        } while (reader.moreData());
-    }
+    explicit ScalableNesting(DecodingContext& context, NALUnit nalu, BitstreamReader& reader);
 };
 
 

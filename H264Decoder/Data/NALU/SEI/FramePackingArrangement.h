@@ -4,7 +4,7 @@
 
 struct FramePackingArrangement
 {
-    std::uint8_t framePackingArrangementId = 0;
+    std::uint16_t framePackingArrangementId = 0;
     bool framePackingArrangementCancelFlag = false;
 
     std::uint8_t framePackingArrangementType = 0;
@@ -22,7 +22,7 @@ struct FramePackingArrangement
     std::uint8_t frame1GridPositionY = 0;
 
     std::uint8_t framePackingArrangementReservedByte = 0;
-    std::uint8_t framePackingArrangementRepetitionPeriod = 0;
+    std::uint16_t framePackingArrangementRepetitionPeriod = 0;
 
     bool framePackingArrangementExtensionFlag = false;
 

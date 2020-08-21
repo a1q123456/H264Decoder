@@ -18,31 +18,31 @@ struct SPSData
     std::uint8_t reservedZero2Bits = 0;
 
     std::uint8_t levelIdc = 0;
-    std::uint8_t spsId = 0;
-    std::uint8_t chromaFormatIdc = 0;
+    std::uint16_t spsId = 0;
+    std::uint16_t chromaFormatIdc = 0;
     bool separateColourPlaneFlag = false;
-    std::uint8_t bitDepthLumaMinus8 = 0;
-    std::uint8_t bitDepthChromaMinus8 = 0;
+    std::uint16_t bitDepthLumaMinus8 = 0;
+    std::uint16_t bitDepthChromaMinus8 = 0;
     bool qpprimeYZeroTransformBypassFlag = false;
     bool seqScalingMatrixPresentFlag = false;
     std::vector<ScalingList> scalingList4x4;
     std::vector<ScalingList> scalingList8x8;
 
-    std::uint8_t log2MaxFrameNumMinus4 = 0;
-    std::uint8_t picOrderCntType = 0;
+    std::uint16_t log2MaxFrameNumMinus4 = 0;
+    std::uint16_t picOrderCntType = 0;
 
-    std::uint8_t log2MaxPicOrderCntLsbMinus4 = 0;
+    std::uint16_t log2MaxPicOrderCntLsbMinus4 = 0;
 
     std::uint8_t deltaPicOrderAlwaysZeroFlag = 0;
-    std::int8_t offsetForNonRefPic;
-    std::int8_t offsetForTopToBottomField;
-    std::uint8_t numRefFramesInPicOrderCntCycle = 0;
-    std::vector<std::int8_t> offsetForRefFrame;
+    std::int16_t offsetForNonRefPic;
+    std::int16_t offsetForTopToBottomField;
+    std::uint16_t numRefFramesInPicOrderCntCycle = 0;
+    std::vector<std::int16_t> offsetForRefFrame;
 
-    std::uint8_t numRefFrames = 0;
+    std::uint16_t numRefFrames = 0;
     bool gapsInFrameNumValueAllowedFlag = false;
-    std::uint8_t picWidthInMbsMinus1 = 0;
-    std::uint8_t picHeightInMapUnitsMinus1 = 0;
+    std::uint16_t picWidthInMbsMinus1 = 0;
+    std::uint16_t picHeightInMapUnitsMinus1 = 0;
     bool frameMbsOnlyFlag = false;
     bool mbAdaptiveFrameFieldFlag = false;
     bool direct8x8InferenceFlag = false;

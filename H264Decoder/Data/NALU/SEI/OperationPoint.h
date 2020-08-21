@@ -1,5 +1,7 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/SEI/TargetOutputView.h>
+#include <Data/NALU/SEI/DirectlyDependentView.h>
 
 
 struct OperationPoint
@@ -8,7 +10,7 @@ struct OperationPoint
     std::uint32_t operationPointId = 0;
     std::uint8_t priorityId = 0;
     std::uint8_t   temporalId = 0;
-    std::uint32_t numTargetOutputViewsMinus1 = 0;
+    std::uint16_t numTargetOutputViewsMinus1 = 0;
     std::vector<TargetOutputView> targetOutputViews;
 
     bool profileLevelInfoPresentFlag = false;
@@ -25,18 +27,18 @@ struct OperationPoint
     std::uint8_t constantFrmRateIdc = 0;
     std::uint16_t avgFrmRate;
 
-    std::uint32_t numDirectlyDependentViews = 0;
+    std::uint16_t numDirectlyDependentViews = 0;
     std::vector<DirectlyDependentView> directlyDependentViews;
 
     std::uint32_t viewDependencyInfoSrcOpId = 0;
 
-    std::uint32_t numSeqParameterSets = 0;
+    std::uint16_t numSeqParameterSets = 0;
     std::vector<std::uint32_t> seqParameterSetIdDelta;
 
-    std::uint32_t numSubsetSeqParameterSets = 0;
+    std::uint16_t numSubsetSeqParameterSets = 0;
     std::vector<std::uint32_t> subsetSeqParameterSetIdDelta;
 
-    std::uint32_t numPicParameterSetMinus1 = 0;
+    std::uint16_t numPicParameterSetMinus1 = 0;
     std::vector<std::uint32_t> picParameterSetIdDelta;
 
     std::uint32_t parameterSetsInfoSrcOpId = 0;

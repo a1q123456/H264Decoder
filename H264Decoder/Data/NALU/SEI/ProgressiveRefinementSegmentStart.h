@@ -3,7 +3,7 @@
 
 struct ProgressiveRefinementSegmentStart
 {
-    std::uint8_t progressiveRefinementId = 0;
+    std::uint16_t progressiveRefinementId = 0;
 
     ProgressiveRefinementSegmentStart() = default;
     explicit ProgressiveRefinementSegmentStart(BitstreamReader& reader)

@@ -10,7 +10,7 @@ struct DisplayOrientation
     bool verFlip = false;
 
     std::uint16_t anticlockwiseRotation = 0;
-    std::uint8_t displayOrientationRepetitionPeriod = 0;
+    std::uint16_t displayOrientationRepetitionPeriod = 0;
     bool displayOrientationExtensionFlag = false;
 
     DisplayOrientation() = default;

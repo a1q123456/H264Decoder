@@ -1,6 +1,9 @@
 #pragma once
 #include <IO/BitstreamReader.h>
 #include <Data\NALU\GridPosView.h>
+#include <Data/NALU/DepthRange.h>
+#include <Data/NALU/VspParam.h>
+#include <Data\NALU\FrameCropping.h>
 
 struct DecodingContext;
 

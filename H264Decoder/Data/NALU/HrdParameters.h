@@ -5,7 +5,7 @@
 struct HrdParameters
 {
     bool hasHrd = false;
-    std::uint8_t cpbCntMinus1 = 0;
+    std::uint16_t cpbCntMinus1 = 0;
     std::uint8_t bitRateScale = 0;
     std::uint8_t cpbSizeScale = 0;
 

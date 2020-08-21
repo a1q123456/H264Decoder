@@ -6,13 +6,13 @@ struct LayerDependencyChange
 {
     struct Layer
     {
-        std::uint32_t layerId = 0;
+        std::uint16_t layerId = 0;
         bool layerDependencyInfoPresentFlag = false;
 
-        std::uint32_t numDirectlyDependentLayers = 0;
-        std::vector<std::uint32_t> directlyDependentLayerIdDeltaMinus1;
+        std::uint16_t numDirectlyDependentLayers = 0;
+        std::vector<std::uint16_t> directlyDependentLayerIdDeltaMinus1;
 
-        std::uint32_t layerDependencyInfoSrcLayerIdDeltaMinsu1 = 0;
+        std::uint16_t layerDependencyInfoSrcLayerIdDeltaMinsu1 = 0;
 
         Layer() = default;
         explicit Layer(BitstreamReader& reader)
@@ -34,7 +34,7 @@ struct LayerDependencyChange
         }
     };
 
-    std::uint32_t numLayersMinus1 = 0;
+    std::uint16_t numLayersMinus1 = 0;
     std::vector<Layer> layers;
 
     LayerDependencyChange() = default;
