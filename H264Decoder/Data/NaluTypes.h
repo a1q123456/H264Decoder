@@ -22,6 +22,7 @@ enum class NaluTypes : std::uint8_t
     Reserved,
     PictureWithoutPartiting = 19,
     SliceLayerExtension,
+    DepthOrThreeDAVCSliceLayerExtension,
     DepthOrTextureViewSliceLayerExtension,
     Reserved2,
     Unspecified2 = 24

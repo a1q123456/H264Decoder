@@ -1,5 +1,7 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/ResidualBlockCavlc.h>
+#include <Data/NALU/ResidualBlockCabac.h>
 
 
 struct Residual

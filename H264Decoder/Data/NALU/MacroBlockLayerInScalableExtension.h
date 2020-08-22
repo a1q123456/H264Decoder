@@ -1,5 +1,8 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/SubMbPredInScalableExtension.h>
+#include <Data/NALU/MbPredInScalableExtension.h>
+#include <Data/NALU/Residual.h>
 
 
 struct MacroBlockLayerInScalableExtension

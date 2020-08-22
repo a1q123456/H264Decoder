@@ -1,5 +1,7 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\RefPicListMvcModification.h>
+#include <Data\NALU\RefPicListModification.h>
 
 
 struct SliceHeaderIn3DAVCExtension

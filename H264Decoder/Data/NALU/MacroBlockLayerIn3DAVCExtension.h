@@ -1,5 +1,8 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/SubMbPredIn3DAVCExtension.h>
+#include <Data/NALU/MbPredIn3DAVCExtension.h>
+#include <Data/NALU/Residual.h>
 
 
 struct MacroBlockLayerIn3DAVCExtension

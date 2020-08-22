@@ -1,5 +1,7 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\RefPicListModification.h>
+#include <Data\NALU\DecRefBasePicMarking.h>
 
 
 struct SliceHeaderInScalableExtension

@@ -1,5 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\MacroBlockLayerIn3DAVCExtension.h>
 
 
 struct SliceDataIn3DAVCExtensionData

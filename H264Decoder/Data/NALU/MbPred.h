@@ -1,5 +1,6 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/Intra4x4Pred.h>
 
 
 struct MbPred

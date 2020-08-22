@@ -1,11 +1,74 @@
 #include <pch.h>
 #include <Data/Byte.h>
 #include "NALUnitReader.h"
+#include <Utils/AutoInjector.h>
 #include <Data/NALU/SPSRbsp.h>
 #include <Data/NALU/PPSRbsp.h>
 #include <Data/NALU/SEIRbsp.h>
+#include <Data/NALU/DPSRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/EndOfSequenceRbsp.h>
+#include <Data/NALU/EndOfStreamRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data/NALU/AUDRbsp.h>
+#include <Data\NALU\FilterDataRbsp.h>
+#include <Data\NALU\SPSExtensionRbsp.h>
+#include <Data\NALU\SliceLayerExtensionRbsp.h>
+
+namespace NALUnitMapping
+{
+    constexpr auto NumberProbe = 10;
+
+    template<NaluTypes EnumVal, typename T>
+    using NALUCreator = AutoInjector::ObjectCreator<10, NaluTypes, EnumVal, T, DecodingContext&, BitstreamReader&, NALUnit&>;
+
+    using Mapping = AutoInjector::TypePack<
+        //NALUCreator<NaluTypes::CodedSliceNonIDRPicture, CodedSliceNonIDRPictureRbsp>,
+        //NALUCreator<NaluTypes::CodedSliceDataPartitionA, CodedSliceDataPartitionARbsp>,
+        //NALUCreator<NaluTypes::CodedSliceDataPartitionB, CodedSliceDataPartitionBRbsp>,
+        //NALUCreator<NaluTypes::CodedSliceDataPartitionC, CodedSliceDataPartitionCRbsp>,
+        //NALUCreator<NaluTypes::CodedSliceIDRPicture, CodedSliceIDRPictureRbsp>,
+        NALUCreator<NaluTypes::SEI, SEIRbsp>,
+        NALUCreator<NaluTypes::SPS, SPSRbsp>,
+        NALUCreator<NaluTypes::PPS, PPSRbsp>,
+        NALUCreator<NaluTypes::AUD, AUDRbsp>,
+        NALUCreator<NaluTypes::EndOfSequence, EndOfSequenceRbsp>,
+        NALUCreator<NaluTypes::EndOfStream, EndOfStreamRbsp>,
+        NALUCreator<NaluTypes::FilterData, FilterDataRbsp>,
+        NALUCreator<NaluTypes::SPSExtension, SPSExtensionRbsp>,
+        //NALUCreator<NaluTypes::PrefixNALUnit, PrefixNALUnitRbsp>,
+        NALUCreator<NaluTypes::SubsetSPS, SubsetSPSRbsp>,
+        NALUCreator<NaluTypes::DPS, DPSRbsp>,
+        //NALUCreator<NaluTypes::PictureWithoutPartiting, PictureWithoutPartitingRbsp>,
+        NALUCreator<NaluTypes::SliceLayerExtension, SliceLayerExtensionRbsp>
+        //NALUCreator<NaluTypes::DepthOrThreeDAVCSliceLayerExtension, DepthOrThreeDAVCSliceLayerExtensionRbsp>,
+        //NALUCreator<NaluTypes::DepthOrTextureViewSliceLayerExtension, DepthOrTextureViewSliceLayerExtensionRbsp>
+    >;
+}
+
+using RbspMap = std::unordered_map<NaluTypes, std::function<std::shared_ptr<std::uint8_t>(DecodingContext&, BitstreamReader&, NALUnit&)>>;
 
 
+struct RbspCreator
+{
+    RbspMap map;
+
+    RbspCreator()
+    {
+        using namespace NALUnitMapping;
+
+        Mapping::RegisterTypes(map);
+    }
+};
+
+RbspCreator creator;
 
 NALUnitReader::NALUnitReader(DecodingContext& context, ByteStream& bs, bool byteAligned) :
     bs(bs),
@@ -78,17 +141,7 @@ bool NALUnitReader::readNALUnit(NALUnit& out)
     rbsp.resize(numBytesInRbsp);
 
     BitstreamReader rbspReader(std::move(rbsp));
-    switch (out.nalUnitType)
-    {
-    case NaluTypes::SPS:
-        readRbsp<SPSRbsp>(rbspReader, out);
-        break;
-    case NaluTypes::PPS:
-        readRbsp<PPSRbsp>(rbspReader, out);
-        break;
-    case NaluTypes::SEI:
-        readRbsp<SEIRbsp>(rbspReader, out);
-    }
+    out.rbsp = creator.map.at(out.nalUnitType)(context, rbspReader, out);
 
     return out.forbiddenZeroBit == 0;
 }

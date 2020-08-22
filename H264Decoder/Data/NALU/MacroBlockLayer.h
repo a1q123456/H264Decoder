@@ -1,5 +1,8 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data/NALU/SubMbPred.h>
+#include <Data/NALU/MbPred.h>
+#include <Data/NALU/Residual.h>
 
 
 struct MacroBlockLayer
