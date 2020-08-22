@@ -3,7 +3,7 @@
 
 struct ProgressiveRefinementSegmentEnd
 {
-    std::uint8_t progressiveRefinementId = 0;
+    std::uint16_t progressiveRefinementId = 0;
 
     ProgressiveRefinementSegmentEnd() = default;
     explicit ProgressiveRefinementSegmentEnd(BitstreamReader& reader);

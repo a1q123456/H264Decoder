@@ -98,7 +98,7 @@ struct ThreeDimensionalReferenceDisplaysInfo
         auto numRefDisplays = numRefDisplaysMinus1 + 1;
         for (auto i = 0; i < numRefDisplays; i++)
         {
-            refDisplays.emplace_back(reader, refViewingDistanceFlag);
+            refDisplays.emplace_back(reader, refViewingDistanceFlag, precRefDisplayWidth);
         }
     }
 };

@@ -76,7 +76,7 @@ struct DecodingContext
         }
         catch (std::bad_variant_access)
         {
-            std::get<SubsetSPSRbsp>(spsContext.at(spsId)).spsData;
+            return std::get<SubsetSPSRbsp>(spsContext.at(spsId)).spsData;
         }
     }
 

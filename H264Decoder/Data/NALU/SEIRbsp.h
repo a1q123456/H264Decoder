@@ -14,7 +14,8 @@ struct SEIRbsp
         do
         {
             seiMessage.emplace_back(context, reader, nalu);
-        } while (reader.moreData());
+        } while (reader.moreRbspData());
+        rbspTrailingBits = RbspTrailingBits{ reader };
     }
 };
 

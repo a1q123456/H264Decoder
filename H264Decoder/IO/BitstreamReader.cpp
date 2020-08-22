@@ -36,6 +36,52 @@ std::int16_t BitstreamReader::readSignedExpoGlomb()
 
 }
 
+bool BitstreamReader::moreRbspData()
+{
+    if (!moreData())
+    {
+        return false;
+    }
+
+    if (bs != nullptr)
+    {
+        throw std::logic_error("not supported");
+    }
+
+    if (underlying.empty())
+    {
+        return false;
+    }
+
+    auto lastByte = underlying.back();
+    if (lastByte == 0)
+    {
+        throw std::runtime_error("rbsp_trailing_bits is not found");
+    }
+
+    if (index + 1 != underlying.size())
+    {
+        return true;
+    }
+
+    auto lastOnePos = 0;
+    for (lastOnePos = 0; lastOnePos < 8; lastOnePos++)
+    {
+        if ((lastByte & (1 << lastOnePos)) != 0)
+        {
+            break;
+        }
+    }
+    
+    auto nextPos = (pos % 8) + 1;
+
+    if ((8 - lastOnePos) == nextPos)
+    {
+        return false;
+    }
+    return true;
+}
+
 bool BitstreamReader::moreData() const noexcept
 {
     return (!underlying.empty() || !nextBitsBuffer.empty() || pos != 8 || (bs && !bs->eof()));

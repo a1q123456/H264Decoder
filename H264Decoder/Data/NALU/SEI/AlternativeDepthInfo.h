@@ -142,7 +142,7 @@ struct AlternativeDepthInfo
     };
 
     std::uint32_t depthType = 0;
-    std::uint32_t numConstituentViewsGvdMinus1 = 0;
+    std::uint16_t numConstituentViewsGvdMinus1 = 0;
     bool depthPresentGvdFlag = false;
     bool zGvdFlag = false;
     bool intrinsicParamGvdFlag = false;

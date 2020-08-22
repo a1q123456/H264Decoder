@@ -52,7 +52,7 @@ public:
     template<typename T>
     T readBits(int n)
     {
-        assert(((1 << n) - 1) <= std::numeric_limits<T>::max());
+        assert(static_cast<std::uint64_t>((1 << n) - 1) <= std::numeric_limits<T>::max());
         return static_cast<T>(internalReadBits(n, false, false));
     }
 
@@ -62,7 +62,15 @@ public:
         static_assert(N <= 64);
         if constexpr (!std::is_same_v<T, bool>)
         {
-            static_assert(((std::uint64_t(1) << N) - 1) <= std::numeric_limits<T>::max());
+            if constexpr (std::is_signed_v<T>)
+            {
+                static_assert(((std::uint64_t(1) << (N / 2)) - 1) <= std::numeric_limits<T>::max());
+            }
+            else
+            {
+                static_assert(((std::uint64_t(1) << N) - 1) <= std::numeric_limits<T>::max());
+            }
+            
         }
         else
         {
@@ -73,6 +81,8 @@ public:
     
     std::uint16_t readExpoGlomb();
     std::int16_t readSignedExpoGlomb();
+
+    bool moreRbspData();
 
     bool moreData() const noexcept;
 

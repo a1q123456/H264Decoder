@@ -16,10 +16,13 @@ struct SEIMessage
     std::shared_ptr<std::uint8_t> seiPayload;
 
     SEIType seiPayloadType;
+    std::uint8_t bitEqualToOne = 0;
 
     SEIMessage() = default;
     explicit SEIMessage(DecodingContext& context, BitstreamReader& reader, NALUnit& nal);
 
 };
+
+
 
 

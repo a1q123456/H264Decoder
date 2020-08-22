@@ -24,5 +24,12 @@ SEIMessage::SEIMessage(DecodingContext& context, BitstreamReader& reader, NALUni
 
     seiPayloadType = static_cast<SEIType>(payloadType);
     seiPayload = getSEICreator().at(seiPayloadType)(context, reader, payloadSize, nal);
-
+    if (!reader.byteAligned())
+    {
+        bitEqualToOne = reader.readBits<std::uint8_t, 1>();
+        while (!reader.byteAligned())
+        {
+            reader.readBits<std::uint8_t, 1>();
+        }
+    }
 }

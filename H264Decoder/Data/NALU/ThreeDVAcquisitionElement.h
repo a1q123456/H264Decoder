@@ -17,7 +17,7 @@ struct ThreeDVAcquisitionElement
         bool sign1 = false;
         bool exponentSkipFlag = false;
         std::uint16_t exponent1 = 0;
-        std::int8_t mantissaDiff;
+        std::int16_t mantissaDiff;
     };
 
     bool elementEqualFlag = false;

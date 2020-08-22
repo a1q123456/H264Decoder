@@ -9,24 +9,24 @@ struct DecodingContext;
 
 struct Sps3DavcExtension
 {
-    std::uint8_t threeDVAcquisitionIdc = 0;
-    std::vector<std::uint8_t> viewId3Dv;
+    std::uint16_t threeDVAcquisitionIdc = 0;
+    std::vector<std::uint16_t> viewId3Dv;
 
     DepthRange depthRanges;
     VspParam vspParam;
 
     bool reducedResolutionFlag = false;
-    std::uint8_t depthPicWidthInMbsMinus1 = 0;
-    std::uint8_t depthPicHeightInMapUnitsMinus1 = 0;
-    std::uint8_t depthHorMultMinus1 = 0;
-    std::uint8_t depthVerMultMinus1 = 0;
-    std::uint8_t depthHorRsh = 0;
-    std::uint8_t depthVerRsh = 0;
+    std::uint16_t depthPicWidthInMbsMinus1 = 0;
+    std::uint16_t depthPicHeightInMapUnitsMinus1 = 0;
+    std::uint16_t depthHorMultMinus1 = 0;
+    std::uint16_t depthVerMultMinus1 = 0;
+    std::uint16_t depthHorRsh = 0;
+    std::uint16_t depthVerRsh = 0;
 
     bool depthFrameCroppingFlag = false;
     FrameCropping depthFrameCropping;
 
-    std::uint8_t gridPosNumViews = 0;
+    std::uint16_t gridPosNumViews = 0;
     std::vector<GridPosView> gridPosViews;
 
     bool sliceHeaderPredictionFlag = false;

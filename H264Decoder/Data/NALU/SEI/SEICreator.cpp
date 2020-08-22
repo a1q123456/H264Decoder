@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "SEICreator.h"
+#include <Data/DecodingContext.h>
+#include <IO/BitstreamReader.h>
 
 #include <Data\NALU\SEI\BufferingPeriod.h>
 #include <Data\NALU\SEI\PicTiming.h>
@@ -60,6 +62,19 @@
 #include <Data\NALU\SEI\ReservedSEIMessage.h>
 #include <Data\NALU\SEI\SEIType.h>
 #include <Data\DecimalValue.h>
+#include <Data\NALU\SEI\AlternativeDepthInfo.h>
+#include <Data\NALU\SEI\ColourRemappingInfo.h>
+#include <Data\NALU\SEI\ContentLightLevelInfo.h>
+#include <Data\NALU\SEI\SEIPrefixIndication.h>
+#include <Data\NALU\SEI\SEIManifest.h>
+#include <Data\NALU\SEI\OmniViewport.h>
+#include <Data\NALU\SEI\RegionwisePacking.h>
+#include <Data\NALU\SEI\SphereRotation.h>
+#include <Data\NALU\SEI\CubemapProjection.h>
+#include <Data\NALU\SEI\EquirectangularProjection.h>
+#include <Data\NALU\SEI\ContentColourVolume.h>
+#include <Data\NALU\SEI\AmbientViewingEnvironment.h>
+#include <Data\NALU\SEI\AlternativeTransferCharacteristics.h>
 
 namespace SEITypeMapping
 {
@@ -67,11 +82,16 @@ namespace SEITypeMapping
     struct TypePack
     {
     private:
+
         template<typename Map, typename CurT, typename ...TCreator>
         static inline void RegisterTypesImpl(Map&& map)
         {
             map[CurT::seiType] = CurT{};
-            RegisterTypesImpl<Map, TCreator...>(std::forward<Map>(map));
+            if constexpr (sizeof...(TCreator) != 0)
+            {
+                RegisterTypesImpl<Map, TCreator...>(std::forward<Map>(map));
+            }
+            
         }
     public:
         template<typename Map>
@@ -82,54 +102,84 @@ namespace SEITypeMapping
 
     };
 
-    template<typename ...T>
+    template<typename SrcType, typename ...T>
     struct Injector
     {
     private:
-        static constexpr std::tuple<T...> tup;
+        std::tuple<T...> tup;
     public:
+        Injector() = delete;
 
         template<typename ...Args>
-        constexpr explicit Injector(Args&&... args) : tup(std::make_tuple(args...))
+        explicit Injector(Args&&... args) : tup(args...)
         {
 
         }
 
-        template<typename InjectTo>
-        constexpr operator InjectTo() const
+        template<typename InjectTo, typename = std::enable_if_t<!std::is_convertible_v<SrcType, InjectTo>>>
+        operator InjectTo() const
         {
             return std::get<InjectTo>(tup);
         }
+
+        template<typename InjectTo, typename = std::enable_if_t<!std::is_convertible_v<SrcType, InjectTo>>>
+        constexpr operator InjectTo&() &
+        {
+            return std::get<InjectTo&>(tup);
+        }
     };
 
-    template<typename ...T>
+    template<typename SrcType, typename ...T>
     constexpr auto makeInjector(T&&... args)
     {
-        return Injector<T...>(args...);
+        return Injector<SrcType, T...>(args...);
     }
 
 
     template<size_t N, typename TSrc>
     struct PlaceHolder
     {
-        template<typename T, typename = std::enable_if_t<!std::is_same_v<TSrc, T>>>
-        operator T() const
+        template<typename T, typename = std::enable_if_t<!std::is_convertible_v<TSrc, T>>>
+        constexpr operator T() const
         {
             return std::declval<T>();
+        }
+
+        template<typename T, typename = std::enable_if_t<!std::is_convertible_v<TSrc, T>>>
+        constexpr operator T& ()&
+        {
+            return std::declval<T&>();
         }
     };
 
     template<typename T, typename BoolType, size_t Num, size_t I, size_t ...N>
     struct NumberParamsToConstructImpl
     {
-        static constexpr size_t Val = NumberParamsToConstructImpl<T, typename std::is_constructible<T, PlaceHolder<N, T>...>::type, Num - 1, N...>::Val;
+        static constexpr size_t Val = NumberParamsToConstructImpl<T, typename std::is_constructible<T, PlaceHolder<N, T>&...>::type, Num - 1, N...>::Val;
+    };
+
+    template<typename T, typename BoolType>
+    struct DefaultConstructibleChecker
+    {
+        static constexpr size_t Val = 0;
+    };
+
+    template<typename T>
+    struct DefaultConstructibleChecker<T, std::true_type>
+    {
+        static constexpr size_t Val = 0;
+    };
+
+    template<typename T>
+    struct DefaultConstructibleChecker<T, std::false_type>
+    {
+        static constexpr size_t Val = 999;
     };
 
     template<typename T, size_t Num, size_t I>
     struct NumberParamsToConstructImpl<T, std::false_type, Num, I>
     {
-        static_assert(false, "not constructible");
-        static constexpr size_t Val = 0;
+        static constexpr size_t Val = DefaultConstructibleChecker<T, typename std::is_default_constructible<T>::type>::Val;
     };
 
     template<typename T, size_t Num, size_t I>
@@ -147,7 +197,7 @@ namespace SEITypeMapping
     template<typename T, size_t Cur, size_t I, size_t ...N>
     constexpr auto numberParamsToConstructImpl(std::index_sequence<I, N...>)
     {
-        return NumberParamsToConstructImpl<T, typename std::is_constructible<T, PlaceHolder<N, T>...>::type, Cur, I, N...>::Val;
+        return NumberParamsToConstructImpl<T, typename std::is_constructible<T, PlaceHolder<N, T>&...>::type, Cur, I, N...>::Val;
     };
 
     template<typename T, size_t Cur>
@@ -157,7 +207,7 @@ namespace SEITypeMapping
     };
 
     template<typename T, typename TInjector, size_t ...N>
-    auto createSEIPtr(TInjector&& injector, std::index_sequence<N...>)
+    T* createSEIPtr(TInjector&& injector, std::index_sequence<N...>)
     {
         return new T((N, injector)...);
     }
@@ -170,8 +220,9 @@ namespace SEITypeMapping
         std::shared_ptr<std::uint8_t> operator()(DecodingContext& context, BitstreamReader& reader, int payloadSize, NALUnit& nalu)
         {
             constexpr auto nParams = SEITypeMapping::numberParamsToConstruct<T, 10>();
+            static_assert(nParams <= 10, "not constructible");
             std::make_index_sequence<nParams> indeies;
-            auto injector = makeInjector(context, reader, payloadSize, nalu);
+            auto injector = makeInjector<T>(context, reader, payloadSize, nalu);
             return std::shared_ptr<std::uint8_t>(reinterpret_cast<std::uint8_t*>(createSEIPtr<T>(injector, indeies)), [](std::uint8_t* ptr)
                 {
                     auto obj = reinterpret_cast<T*>(ptr);
@@ -180,7 +231,7 @@ namespace SEITypeMapping
         }
     };
 
-    using Mapping = TypePack < SEIType::ConstrainedDepthParameterSetIdentifier,
+    using Mapping = TypePack <SEIType::ConstrainedDepthParameterSetIdentifier,
         SEIMessageCreator<SEIType::BufferingPeriod, BufferingPeriod>,
         SEIMessageCreator<SEIType::PicTiming, PicTiming>,
         SEIMessageCreator<SEIType::PanScanRect, PanScanRect>,
@@ -237,23 +288,39 @@ namespace SEITypeMapping
         SEIMessageCreator<SEIType::DepthSamplingInfo, DepthSamplingInfo>,
         SEIMessageCreator<SEIType::ConstrainedDepthParameterSetIdentifier, ConstrainedDepthParameterSetIdentifier>,
         //SEIMessageCreator<SEIType::GreenMetadata, GreenMetadata>,
-        //SEIMessageCreator<SEIType::MasteringDisplayColourVolume, MasteringDisplayColourVolume>,
-        //SEIMessageCreator<SEIType::ColourRemappingInfo, ColourRemappingInfo>,
-        //SEIMessageCreator<SEIType::ContentLightLevelInfo, ContentLightLevelInfo>,
-        //SEIMessageCreator<SEIType::AlternativeTransferCharacteristics, AlternativeTransferCharacteristics>,
-        //SEIMessageCreator<SEIType::AmbientViewingEnvironment, AmbientViewingEnvironment>,
-        //SEIMessageCreator<SEIType::ContentColourVolume, ContentColourVolume>,
-        //SEIMessageCreator<SEIType::EquirectangularProjection, EquirectangularProjection>,
+        SEIMessageCreator<SEIType::MasteringDisplayColourVolume, MasteringDisplayColourVolume>,
+        SEIMessageCreator<SEIType::ColourRemappingInfo, ColourRemappingInfo>,
+        SEIMessageCreator<SEIType::ContentLightLevelInfo, ContentLightLevelInfo>,
+        SEIMessageCreator<SEIType::AlternativeTransferCharacteristics, AlternativeTransferCharacteristics>,
+        SEIMessageCreator<SEIType::AmbientViewingEnvironment, AmbientViewingEnvironment>,
+        SEIMessageCreator<SEIType::ContentColourVolume, ContentColourVolume>,
+        SEIMessageCreator<SEIType::EquirectangularProjection, EquirectangularProjection>,
         //SEIMessageCreator<SEIType::CubemapProjection, CubemapProjection>,
-        //SEIMessageCreator<SEIType::SphereRotation, SphereRotation>,
-        //SEIMessageCreator<SEIType::RegionwisePacking, RegionwisePacking>,
-        //SEIMessageCreator<SEIType::OmniViewport, OmniViewport>,
-        //SEIMessageCreator<SEIType::AlternativeDepthInfo, AlternativeDepthInfo>,
-        //SEIMessageCreator<SEIType::SEIManifest, SEIManifest>,
-        //SEIMessageCreator<SEIType::SEIPrefixIndication, SEIPrefixIndication>,
+        SEIMessageCreator<SEIType::SphereRotation, SphereRotation>,
+        SEIMessageCreator<SEIType::RegionwisePacking, RegionwisePacking>,
+        SEIMessageCreator<SEIType::OmniViewport, OmniViewport>,
+        SEIMessageCreator<SEIType::AlternativeDepthInfo, AlternativeDepthInfo>,
+        SEIMessageCreator<SEIType::SEIManifest, SEIManifest>,
+        SEIMessageCreator<SEIType::SEIPrefixIndication, SEIPrefixIndication>,
         SEIMessageCreator<SEIType::ReservedSEIMessage, ReservedSEIMessage>
     > ;
 }
+
+struct CCCC
+{
+    template<typename T>
+    constexpr operator T() const
+    {
+        return std::declval<T>();
+    }
+
+    template<typename T>
+    constexpr operator T& ()&
+    {
+        return std::declval<T>();
+    }
+    
+};
 
 struct SEIMap
 {
@@ -261,10 +328,12 @@ struct SEIMap
 
     SEIMap()
     {
-        SEITypeMapping::Mapping::RegisterTypes(map);
+        using namespace SEITypeMapping;
+
+        Mapping::RegisterTypes(map);
     }
 };
-
+SEIMap seiMap;
 
 const SEICreatorMap& getSEICreator()
 {

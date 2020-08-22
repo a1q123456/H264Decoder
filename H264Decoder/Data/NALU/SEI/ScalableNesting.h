@@ -21,7 +21,7 @@ struct ScalableNesting
     };
 
     bool allLayerRepresentationsInAuFlag = false;
-    std::uint32_t numLayerRepresentationsMinus1 = 0;
+    std::uint16_t numLayerRepresentationsMinus1 = 0;
     std::vector<LayerRepresentation> layerRepresentations;
     std::uint8_t seiTemporalId = 0;
 
