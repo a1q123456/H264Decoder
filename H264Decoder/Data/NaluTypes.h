@@ -14,7 +14,7 @@ enum class NaluTypes : std::uint8_t
     AUD,
     EndOfSequence,
     EndOfStream,
-    FilterData,
+    FillerData,
     SPSExtension,
     PrefixNALUnit,
     SubsetSPS,

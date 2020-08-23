@@ -3,21 +3,23 @@
 #include <Data\NALU\RefPicListModification.h>
 #include <Data\NALU\DecRefBasePicMarking.h>
 
+struct DecodingContext;
+struct NALUnit;
 
 struct SliceHeaderInScalableExtension
 {
-    std::uint8_t firstMbInSlice = 0;
-    std::uint8_t sliceType = 0;
-    std::uint8_t ppsId = 0;
+    std::uint16_t firstMbInSlice = 0;
+    std::uint16_t sliceType = 0;
+    std::uint16_t ppsId = 0;
 
     std::uint8_t colourPlaneId = 0;
-    std::uint8_t frameNum = 0;
+    std::uint32_t frameNum = 0;
 
     bool fieldPicFlag = false;
     bool bottomFieldFlag = false;
 
-    std::uint8_t idrPicId = 0;
-    std::uint8_t picOrderCntLsb = 0;
+    std::uint16_t idrPicId = 0;
+    std::uint32_t picOrderCntLsb = 0;
 
     std::int8_t deltaPicOrderCntBottom;
     std::int8_t deltaPicOrderCnt[2];
@@ -31,7 +33,7 @@ struct SliceHeaderInScalableExtension
     RefPicListModification refPicListModification;
 
     bool basePredWeightTableFlag = false;
-    PredWeightTable PredWeightTable;
+    PredWeightTable predWeightTable;
 
     DecRefPicMarking decRefPicMarking;
     bool storeRefBasePicFlag = false;
@@ -72,6 +74,9 @@ struct SliceHeaderInScalableExtension
 
     std::uint8_t scanIdxStart = 0;
     std::int8_t scanIdxEnd;
+
+    SliceHeaderInScalableExtension() = default;
+    explicit SliceHeaderInScalableExtension(DecodingContext& context, BitstreamReader& reader, NALUnit& nal);
 };
 
 

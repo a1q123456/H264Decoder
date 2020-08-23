@@ -21,6 +21,7 @@
 #include <Data\NALU\FilterDataRbsp.h>
 #include <Data\NALU\SPSExtensionRbsp.h>
 #include <Data\NALU\SliceLayerExtensionRbsp.h>
+#include <Data\NALU\FillerDataRbsp.h>
 
 namespace NALUnitMapping
 {
@@ -41,7 +42,7 @@ namespace NALUnitMapping
         NALUCreator<NaluTypes::AUD, AUDRbsp>,
         NALUCreator<NaluTypes::EndOfSequence, EndOfSequenceRbsp>,
         NALUCreator<NaluTypes::EndOfStream, EndOfStreamRbsp>,
-        NALUCreator<NaluTypes::FilterData, FilterDataRbsp>,
+        NALUCreator<NaluTypes::FillerData, FillerDataRbsp>,
         NALUCreator<NaluTypes::SPSExtension, SPSExtensionRbsp>,
         //NALUCreator<NaluTypes::PrefixNALUnit, PrefixNALUnitRbsp>,
         NALUCreator<NaluTypes::SubsetSPS, SubsetSPSRbsp>,

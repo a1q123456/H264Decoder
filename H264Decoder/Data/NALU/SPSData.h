@@ -6,6 +6,8 @@
 
 struct SPSData
 {
+    std::uint8_t chromaArrayType = 0;
+
     std::uint8_t profileIdc = 0;
 
     bool constraintSet0Flag = false;
@@ -43,6 +45,7 @@ struct SPSData
     bool gapsInFrameNumValueAllowedFlag = false;
     std::uint16_t picWidthInMbsMinus1 = 0;
     std::uint16_t picHeightInMapUnitsMinus1 = 0;
+    std::uint32_t picSizeInMapUnits = 0;
     bool frameMbsOnlyFlag = false;
     bool mbAdaptiveFrameFieldFlag = false;
     bool direct8x8InferenceFlag = false;
@@ -83,6 +86,8 @@ struct SPSData
             {
                 separateColourPlaneFlag = rbspReader.readBits<std::uint8_t, 1>();
             }
+
+            chromaArrayType = !separateColourPlaneFlag ? chromaFormatIdc : 0;
             bitDepthLumaMinus8 = rbspReader.readExpoGlomb();
             bitDepthChromaMinus8 = rbspReader.readExpoGlomb();
             qpprimeYZeroTransformBypassFlag = rbspReader.readBits<std::uint8_t, 1>();
@@ -122,6 +127,7 @@ struct SPSData
         gapsInFrameNumValueAllowedFlag = rbspReader.readBits<std::uint8_t, 1>();
         picWidthInMbsMinus1 = rbspReader.readExpoGlomb();
         picHeightInMapUnitsMinus1 = rbspReader.readExpoGlomb();
+        picSizeInMapUnits = (picWidthInMbsMinus1 + 1) * (picHeightInMapUnitsMinus1 + 1);
         frameMbsOnlyFlag = rbspReader.readBits<std::uint8_t, 1>();
         if (!frameMbsOnlyFlag)
         {

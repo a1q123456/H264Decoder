@@ -26,6 +26,7 @@ struct SubsetSPSRbsp
     std::vector<BoolType> additionalExtension2DataFlags;
     RbspTrailingBits rbspTrailingBits;
 
+    SubsetSPSRbsp() = default;
     explicit SubsetSPSRbsp(DecodingContext context, BitstreamReader& reader);
 
 };

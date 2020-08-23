@@ -5,7 +5,7 @@
 
 DecRefPicMarking::DecRefPicMarking(NaluTypes nalType, BitstreamReader& reader)
 {
-    if (GetIdrPicFlag(nalType))
+    if (getIdrPicFlag(nalType))
     {
         noOutputOfPriorPicsFlag = reader.readBits<bool, 1>();
         longTermReferenceFlag = reader.readBits<bool, 1>();

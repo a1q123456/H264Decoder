@@ -8,7 +8,7 @@ SubsetSPSRbsp::SubsetSPSRbsp(DecodingContext context, BitstreamReader& reader)
 
     if (spsData.profileIdc == 83 || spsData.profileIdc == 86)
     {
-        spsSvcExtension = SeqParameterSetSvcExtension{ reader, spsData.chromaFormatIdc };
+        spsSvcExtension = SeqParameterSetSvcExtension{ reader, spsData.chromaArrayType };
 
         svcVuiParametersPresentFlag = reader.readBits<std::uint8_t, 1>();
         if (svcVuiParametersPresentFlag)

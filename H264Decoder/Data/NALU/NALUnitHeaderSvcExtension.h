@@ -4,9 +4,9 @@
 
 struct NALUnitHeaderSvcExtension
 {
-    bool IDRFlag = false;
+    bool idrFlag = false;
     std::uint8_t priorityId = 0;
-    bool NoInterLayerPredFlag = false;
+    bool noInterLayerPredFlag = false;
     std::uint8_t dependencyId = 0;
     std::uint8_t qualityId = 0;
     std::uint8_t temporalId = 0;
@@ -18,9 +18,9 @@ struct NALUnitHeaderSvcExtension
     NALUnitHeaderSvcExtension() = default;
     explicit NALUnitHeaderSvcExtension(BitstreamReader& reader)
     {
-        IDRFlag = reader.readBits<std::uint8_t, 1>();
+        idrFlag = reader.readBits<std::uint8_t, 1>();
         priorityId = reader.readBits<std::uint8_t, 6>();
-        NoInterLayerPredFlag = reader.readBits<std::uint8_t, 1>();
+        noInterLayerPredFlag = reader.readBits<std::uint8_t, 1>();
         dependencyId = reader.readBits<std::uint8_t, 3>();
         qualityId = reader.readBits<std::uint8_t, 4>();
         temporalId = reader.readBits<std::uint8_t, 3>();

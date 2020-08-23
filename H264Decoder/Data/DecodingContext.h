@@ -8,12 +8,22 @@
 #include <Data\NALU\SliceHeader.h>
 #include <Data\NALU\CurrentPictureContext.h>
 #include <Data\NALU\SubsetSPSRbsp.h>
+#include <H264Decoder\Data\NALU\SliceHeaderInScalableExtension.h>
+#include <H264Decoder\Data\NALU\SliceHeaderIn3DAVCExtension.h>
 
+enum class SliceType : int
+{
+    EP = 0,
+    EB,
+    EI
+};
 
-constexpr bool GetIdrPicFlag(NaluTypes nalType)
+constexpr bool getIdrPicFlag(NaluTypes nalType)
 {
     return nalType == NaluTypes::CodedSliceIDRPicture;
 }
+
+using SliceHeaderType = std::variant<SliceHeader, SliceHeaderInScalableExtension, SliceHeaderIn3DAVCExtension, nullptr_t>;
 
 struct DecodingContext
 {
@@ -59,6 +69,26 @@ struct DecodingContext
         return getPicHeightInMapUnits() * getPicWidthInMbs();
     }
 
+    bool sliceHeaderIsSVC()
+    {
+        return sliceHeader.index() == 1;
+    }
+
+    bool sliceHeaderIs3DAVC()
+    {
+        return sliceHeader.index() == 2;
+    }
+
+    bool hasSliceHeader()
+    {
+        return sliceHeader.index() != 3 && sliceHeader.index() != std::variant_npos;
+    }
+
+    SliceHeaderType& currentSliceHeader()
+    {
+        return sliceHeader;
+    }
+
     PPSRbsp& currentPPS()
     {
         if (activePPSId == -1)
@@ -92,6 +122,15 @@ struct DecodingContext
         }
     }
 
+    SubsetSPSRbsp& currentSubsetSPS()
+    {
+        if (activeSPSId == -1)
+        {
+            throw std::runtime_error("no current sps");
+        }
+        return std::get<SubsetSPSRbsp>(spsContext.at(activeSPSId));
+    }
+
     SPSData& currentSPS()
     {
         if (activeSPSId == -1)
@@ -120,6 +159,33 @@ struct DecodingContext
         return cpbDpbDelaysPresentFlag() && currentSPS().vuiParametersPresentFlag && currentSPS().vuiParameters.picStructPresentFlag;
     }
 
+    void activePPS(int id)
+    {
+        if (ppsContext.find(id) == ppsContext.end())
+        {
+            throw std::out_of_range("no such id");
+        }
+        activePPSId = id;
+    }
+
+    void activeDPS(int id)
+    {
+        if (dpsContext.find(id) == dpsContext.end())
+        {
+            throw std::out_of_range("no such id");
+        }
+        activeDPSId = id;
+    }
+    
+    void activePPS(int id)
+    {
+        if (spsContext.find(id) == spsContext.end())
+        {
+            throw std::out_of_range("no such id");
+        }
+        activePPSId = id;
+    }
+
     DPSContext& currentDPS()
     {
         if (activeDPSId == -1)
@@ -136,6 +202,15 @@ struct DecodingContext
             throw std::runtime_error("no current pps");
         }
         return ppsContext.at(activePPSId);
+    }
+
+    const SubsetSPSRbsp& currentSubsetSPS() const
+    {
+        if (activeSPSId == -1)
+        {
+            throw std::runtime_error("no current sps");
+        }
+        return std::get<SubsetSPSRbsp>(spsContext.at(activeSPSId));
     }
 
     const SPSData& currentSPS() const
@@ -197,6 +272,8 @@ private:
     int activePPSId = -1;
     int activeSPSId = -1;
     int activeDPSId = -1;
+
+    SliceHeaderType sliceHeader;
 };
 
 
