@@ -8,4 +8,8 @@
 #include <algorithm>
 #include <array>
 #include <unordered_map>
+#include <functional>
+#include <type_traits>
 #include <variant>
+#include <map>
+

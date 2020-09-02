@@ -54,6 +54,54 @@ struct DecodingContext
         { 8, "frame tripling", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return vui.timingInfoPresentFlag && vui.timingInfo.vuiFixedFrameRateFlag && !sh.fieldPicFlag && cpc.bottomFieldOrderCnt == cpc.topFieldOrderCnt; }, 3 },
     };
 
+
+    std::uint64_t nextMbAddress(std::uint64_t n)
+    {
+        auto i = n + 1;
+        auto&& mbToSliceGroupMap = currentPPS().mapUnitToSliceGroupMap;
+        while (i < getPicSizeInMbs() && mbToSliceGroupMap[i] != mbToSliceGroupMap[n])
+        {
+            i++;
+        }
+        return i;
+
+    }
+
+    template<typename TCb>
+    void getSliceHeader(TCb&& cb)
+    {
+        auto&& sliceHeader = currentSliceHeader();
+        if (sliceHeaderIsSVC())
+        {
+            auto&& header = std::get<SliceHeaderInScalableExtension>(sliceHeader);
+            cb(header);
+        }
+        else if (sliceHeaderIs3DAVC())
+        {
+            auto&& header = std::get<SliceHeaderIn3DAVCExtension>(sliceHeader);
+            cb(header);
+        }
+        else if (hasSliceHeader())
+        {
+            auto&& header = std::get<SliceHeader>(sliceHeader);
+            cb(header);
+        }
+        else
+        {
+            throw std::runtime_error("no slice header");
+        }
+    }
+
+    bool getMbaffFrameFlag()
+    {
+        bool fieldPicFlag = false;
+        getSliceHeader([&](auto header)
+            {
+                fieldPicFlag = header.fieldPicFlag;
+            });
+        return (currentSPS().mbAdaptiveFrameFieldFlag && !fieldPicFlag);
+    }
+
     int getPicWidthInMbs()
     {
         return currentSPS().picWidthInMbsMinus1 + 1;
@@ -62,6 +110,44 @@ struct DecodingContext
     int getPicHeightInMapUnits()
     {
         return currentSPS().picHeightInMapUnitsMinus1 + 1;
+    }
+
+    int getFrameHeightInMbs()
+    {
+        return (2 - currentSPS().frameMbsOnlyFlag) * getPicHeightInMapUnits();
+    }
+
+    int getPicHeightInMbs()
+    {
+        int fieldPicFlag = 0;
+        getSliceHeader([&](auto&& header)
+            {
+                fieldPicFlag = header.fieldPicFlag;
+            });
+
+        return getFrameHeightInMbs() / (1 + fieldPicFlag);
+    }
+
+    int getMapUnitsInSliceGroup0(int sliceGroupChangeRateMinus1)
+    {
+        auto sliceGroupChangeCycle = 0;
+        getSliceHeader([&](auto&& sliceHeader)
+            {
+                sliceGroupChangeCycle = sliceHeader.sliceGroupChangeCycle;
+            });
+
+        return std::min(sliceGroupChangeCycle * (sliceGroupChangeRateMinus1 + 1), getPicSizeInMapUnits());
+    }
+
+    int getSizeOfUpperLeftGroup(bool sliceGroupChangeDirectionFlag, int sliceGroupChangeRateMinus1)
+    {
+        auto mapUnitsInSliceGroup0 = getMapUnitsInSliceGroup0(sliceGroupChangeRateMinus1);
+        return (sliceGroupChangeDirectionFlag ? (getPicSizeInMapUnits() - mapUnitsInSliceGroup0) : mapUnitsInSliceGroup0);
+    }
+
+    int getPicSizeInMbs()
+    {
+        return getPicWidthInMbs() * getPicHeightInMbs();
     }
 
     int getPicSizeInMapUnits()
@@ -245,7 +331,6 @@ struct DecodingContext
         {
             activePPSId = pps.ppsId;
         }
-
     }
 
     void addSPS(const SPSRbsp& sps)

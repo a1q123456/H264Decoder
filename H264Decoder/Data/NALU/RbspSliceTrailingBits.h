@@ -1,6 +1,8 @@
 #pragma once
 #include <IO/BitstreamReader.h>
+#include <Data\NALU\RbspTrailingBits.h>
 
+struct DecodingContext;
 
 struct RbspSliceTrailingBits
 {
@@ -8,16 +10,7 @@ struct RbspSliceTrailingBits
     std::uint16_t cabacZeroWord = 0;
 
     RbspSliceTrailingBits() = default;
-    explicit RbspSliceTrailingBits(DecodingContext& context, BitstreamReader& reader)
-    {
-        if (context.currentPPS().entropyCodingModeFlag)
-        {
-            while (reader.moreData())
-            {
-                cabacZeroWord = reader.readBits<std::uint16_t>(16);
-            }
-        }
-    }
+    explicit RbspSliceTrailingBits(DecodingContext& context, BitstreamReader& reader);
 
 };
 

@@ -23,6 +23,9 @@ struct MacroBlockLayerInScalableExtension
     std::uint8_t mbQpDelta = 0;
 
     Residual residual;
+
+    MacroBlockLayerInScalableExtension() = default;
+    explicit MacroBlockLayerInScalableExtension(BitstreamReader& reader);
 };
 
 
