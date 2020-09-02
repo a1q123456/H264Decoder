@@ -4,9 +4,9 @@
 
 struct AdaptiveRefBasePicMarkingMode
 {
-    std::uint8_t memoryManagementBaseControlOperation = 0;
-    std::uint8_t differenceOfBasePicNumsMinus1 = 0;
-    std::uint8_t longTermBasePicNum = 0;
+    std::uint16_t memoryManagementBaseControlOperation = 0;
+    std::uint16_t differenceOfBasePicNumsMinus1 = 0;
+    std::uint16_t longTermBasePicNum = 0;
 
     AdaptiveRefBasePicMarkingMode() = default;
     explicit AdaptiveRefBasePicMarkingMode(BitstreamReader& reader)

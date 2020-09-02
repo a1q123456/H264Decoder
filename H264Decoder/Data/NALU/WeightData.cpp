@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "WeightData.h"
+#include <Data/DecodingContext.h>
 
 WeightData::WeightData(DecodingContext& context, BitstreamReader& reader)
 {

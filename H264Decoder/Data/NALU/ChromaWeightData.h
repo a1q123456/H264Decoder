@@ -4,8 +4,8 @@
 
 struct ChromaWeightData
 {
-    std::int8_t chromaWeight;
-    std::int8_t chromaOffset;
+    std::int16_t chromaWeight;
+    std::int16_t chromaOffset;
 };
 
 

@@ -2,6 +2,8 @@
 #include <IO/BitstreamReader.h>
 #include <Data\NALU\RefPicListModification.h>
 #include <Data\NALU\DecRefBasePicMarking.h>
+#include <Data/NALU/PredWeightTable.h>
+#include <Data/NALU/DecRefPicMarking.h>
 
 struct DecodingContext;
 struct NALUnit;
@@ -21,14 +23,14 @@ struct SliceHeaderInScalableExtension
     std::uint16_t idrPicId = 0;
     std::uint32_t picOrderCntLsb = 0;
 
-    std::int8_t deltaPicOrderCntBottom;
-    std::int8_t deltaPicOrderCnt[2];
+    std::int16_t deltaPicOrderCntBottom;
+    std::int16_t deltaPicOrderCnt[2];
 
-    std::uint8_t redundantPicCnt = 0;
+    std::uint16_t redundantPicCnt = 0;
     bool directSpatialMvPredFlag = false;
     bool numRefIdxActiveOverrideFlag = false;
-    std::uint8_t numRefIdxl0ActiveMinus1 = 0;
-    std::uint8_t numRefIdxl1ActiveMinus1 = 0;
+    std::uint16_t numRefIdxL0ActiveMinus1 = 0;
+    std::uint16_t numRefIdxL1ActiveMinus1 = 0;
 
     RefPicListModification refPicListModification;
 
@@ -39,30 +41,30 @@ struct SliceHeaderInScalableExtension
     bool storeRefBasePicFlag = false;
     DecRefBasePicMarking decRefBasePicMarking;
 
-    std::uint8_t cabacInitIdc = 0;
-    std::int8_t sliceQpDelta;
+    std::uint16_t cabacInitIdc = 0;
+    std::int16_t sliceQpDelta;
 
-    std::uint8_t disableDeblockingFilterIdc = 0;
-    std::int8_t sliceAlphaC0OffsetDiv2;
-    std::int8_t sliceBetaOffsetDiv2;
+    std::uint16_t disableDeblockingFilterIdc = 0;
+    std::int16_t sliceAlphaC0OffsetDiv2;
+    std::int16_t sliceBetaOffsetDiv2;
 
     std::uint8_t sliceGroupChangeCycle = 0;
-    std::uint8_t refLayerDqId = 0;
-    std::uint8_t disableInterLayerDeblockingFilterIdc = 0;
-    std::int8_t interLayerSliceAlphaC0OffsetDiv2;
-    std::int8_t interLayerSliceBetaOffsetDiv2;
+    std::uint16_t refLayerDqId = 0;
+    std::uint16_t disableInterLayerDeblockingFilterIdc = 0;
+    std::int16_t interLayerSliceAlphaC0OffsetDiv2;
+    std::int16_t interLayerSliceBetaOffsetDiv2;
 
     bool constrainedIntraResamplingFlag = false;
     bool refLayerChromaPhaseXPlus1Flag = false;
     std::uint8_t refLayerChromaPhaseYPlus1 = 0;
 
-    std::int8_t scaledRefLayerLeftOffset;
-    std::int8_t scaledRefLayerTopOffset;
-    std::int8_t scaledRefLayerRightOffset;
-    std::int8_t scaledRefLayerBottomOffset;
+    std::int16_t scaledRefLayerLeftOffset;
+    std::int16_t scaledRefLayerTopOffset;
+    std::int16_t scaledRefLayerRightOffset;
+    std::int16_t scaledRefLayerBottomOffset;
 
     bool sliceSkipFlag = false;
-    std::uint8_t numMbsInSliceMinus1 = 0;
+    std::uint16_t numMbsInSliceMinus1 = 0;
 
     bool adaptiveBaseModeFlag = false;
     bool defaultBaseModeFlag = false;

@@ -2,6 +2,7 @@
 #include <IO/BitstreamReader.h>
 #include <Data\NALU\RefPicListMvcModification.h>
 #include <Data\NALU\RefPicListModification.h>
+#include <Data\NALU\PredWeightTable.h>
 
 
 struct SliceHeaderIn3DAVCExtension
@@ -12,8 +13,8 @@ struct SliceHeaderIn3DAVCExtension
     std::uint8_t preSliceHeaderSrc = 0;
     std::uint8_t preRefListsSrc = 0;
     bool numRefIdxActiveOverrideFlag = false;
-    std::uint8_t numRefIdxl0ActiveMinus1 = 0;
-    std::uint8_t numRefIdxl1ActiveMinus1 = 0;
+    std::uint8_t numRefIdxL0ActiveMinus1 = 0;
+    std::uint8_t numRefIdxL1ActiveMinus1 = 0;
 
     RefPicListMvcModification refPicListMvcModification;
     std::uint8_t prePredWeightTableSrc = 0;

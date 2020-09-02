@@ -58,10 +58,10 @@ SliceHeaderInScalableExtension::SliceHeaderInScalableExtension(DecodingContext& 
             numRefIdxActiveOverrideFlag = reader.readBits<bool, 1>();
             if (numRefIdxActiveOverrideFlag)
             {
-                numRefIdxl0ActiveMinus1 = reader.readExpoGlomb();
+                numRefIdxL0ActiveMinus1 = reader.readExpoGlomb();
                 if (SliceType(sliceType % 5) == SliceType::EB)
                 {
-                    numRefIdxl1ActiveMinus1 = reader.readExpoGlomb();
+                    numRefIdxL1ActiveMinus1 = reader.readExpoGlomb();
                 }
             }
         }
@@ -110,7 +110,9 @@ SliceHeaderInScalableExtension::SliceHeaderInScalableExtension(DecodingContext& 
     if (context.currentPPS().numSliceGroupsMinus1 > 0 &&
         context.currentPPS().sliceGroupMapType >= 3 && context.currentPPS().sliceGroupMapType <= 5)
     {
-        sliceGroupChangeCycle = reader.readBits<std::uint32_t>(std::ceil(std::log2(context.currentSPS().picSizeInMapUnits / (context.currentPPS().sliceGroupChangeRateMinus1 + 1) + 1)));
+        sliceGroupChangeCycle = reader.readBits<std::uint32_t>(
+            static_cast<int>(std::ceil(std::log2(context.currentSPS().picSizeInMapUnits / (context.currentPPS().sliceGroupChangeRateMinus1 + 1) + 1)))
+            );
     }
     if (!nal.nalUnitHeaderSvcExtension.noInterLayerPredFlag && nal.nalUnitHeaderSvcExtension.qualityId == 0)
     {

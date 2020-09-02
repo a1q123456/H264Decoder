@@ -12,6 +12,11 @@ struct SliceDataInScalableExtensionData
 
     bool endOfSliceFlag = false;
 
+    SliceDataInScalableExtensionData() = default;
+    explicit SliceDataInScalableExtensionData(BitstreamReader& reader)
+    {
+
+    }
 };
 
 

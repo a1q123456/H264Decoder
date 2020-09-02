@@ -22,8 +22,8 @@ struct SliceHeader
     std::uint8_t redundantPicCnt = 0;
     bool directSpatialMVPredFlag = false;
     bool numRefIdxActiveOverrideFlag = false;
-    std::uint8_t numRefIdxl0ActiveMinus1 = 0;
-    std::uint8_t numRefIdxl1ActiveMinus1 = 0;
+    std::uint8_t numRefIdxL0ActiveMinus1 = 0;
+    std::uint8_t numRefIdxL1ActiveMinus1 = 0;
 
     RefPicListReordering refPicListRecording;
     PredWeightTable predWeightTable;

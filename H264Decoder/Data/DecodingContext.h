@@ -8,8 +8,8 @@
 #include <Data\NALU\SliceHeader.h>
 #include <Data\NALU\CurrentPictureContext.h>
 #include <Data\NALU\SubsetSPSRbsp.h>
-#include <H264Decoder\Data\NALU\SliceHeaderInScalableExtension.h>
-#include <H264Decoder\Data\NALU\SliceHeaderIn3DAVCExtension.h>
+#include <Data\NALU\SliceHeaderInScalableExtension.h>
+#include <Data\NALU\SliceHeaderIn3DAVCExtension.h>
 
 enum class SliceType : int
 {
@@ -177,13 +177,13 @@ struct DecodingContext
         activeDPSId = id;
     }
     
-    void activePPS(int id)
+    void activeSPS(int id)
     {
         if (spsContext.find(id) == spsContext.end())
         {
             throw std::out_of_range("no such id");
         }
-        activePPSId = id;
+        activeSPSId = id;
     }
 
     DPSContext& currentDPS()

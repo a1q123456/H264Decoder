@@ -7,6 +7,7 @@
 #include <Data\NALU\RbspSliceTrailingBits.h>
 #include <Data\NALU\SliceDataIn3DAVCExtension.h>
 
+struct DecodingContext;
 
 struct SliceLayerExtensionRbsp
 {
@@ -20,11 +21,11 @@ struct SliceLayerExtensionRbsp
     RbspSliceTrailingBits rbspSliceTrailingBits;
 
     SliceLayerExtensionRbsp() = default;
-    explicit SliceLayerExtensionRbsp(BitstreamReader& reader, NALUnit& nal)
+    explicit SliceLayerExtensionRbsp(DecodingContext& context, BitstreamReader& reader, NALUnit& nal)
     {
         if (nal.svcExtensionFlag)
         {
-            sliceHeaderInScalableExtension = SliceHeaderInScalableExtension{ reader };
+            sliceHeaderInScalableExtension = SliceHeaderInScalableExtension{ context, reader, nal };
             if (!sliceHeaderInScalableExtension.sliceSkipFlag)
             {
                 sliceDataInScalableExtension = SliceDataInScalableExtension{ reader };

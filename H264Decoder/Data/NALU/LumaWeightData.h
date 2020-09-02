@@ -4,8 +4,8 @@
 
 struct LumaWeightData
 {
-    std::int8_t lumaWeight;
-    std::int8_t lumaOffset;
+    std::int16_t lumaWeight;
+    std::int16_t lumaOffset;
 };
 
 
