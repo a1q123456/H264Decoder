@@ -7,7 +7,7 @@
 
 struct SliceHeader
 {
-    std::uint8_t firstMbInSlice = 0;
+    std::uint16_t firstMbInSlice = 0;
     std::uint8_t sliceType = 0;
     std::uint8_t picParameterSetID = 0;
     std::uint8_t frameNum = 0;

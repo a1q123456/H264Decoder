@@ -4,6 +4,8 @@
 
 struct DecodingContext;
 
+struct DecodingContext;
+
 struct SliceDataInScalableExtension
 {
     std::vector<std::uint8_t> cabacAlignmentOneBit;

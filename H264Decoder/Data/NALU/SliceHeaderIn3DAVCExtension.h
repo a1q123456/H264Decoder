@@ -7,7 +7,7 @@
 
 struct SliceHeaderIn3DAVCExtension
 {
-    std::uint8_t firstMbInSlice = 0;
+    std::uint16_t firstMbInSlice = 0;
     std::uint8_t sliceType = 0;
     std::uint8_t ppsId = 0;
     std::uint8_t preSliceHeaderSrc = 0;
