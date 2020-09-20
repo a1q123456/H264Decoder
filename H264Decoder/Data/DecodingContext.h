@@ -10,13 +10,8 @@
 #include <Data\NALU\SubsetSPSRbsp.h>
 #include <Data\NALU\SliceHeaderInScalableExtension.h>
 #include <Data\NALU\SliceHeaderIn3DAVCExtension.h>
+#include <Data/SliceType.h>
 
-enum class SliceType : int
-{
-    EP = 0,
-    EB,
-    EI
-};
 
 constexpr bool getIdrPicFlag(NaluTypes nalType)
 {
