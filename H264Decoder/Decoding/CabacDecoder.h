@@ -1,13 +1,23 @@
 #pragma once
+#include <IO/BitstreamReader.h>
 
 enum class SliceType;
-class BitstreamReader;
+
+template<size_t prefix, size_t suffix>
+struct PrefixAndSuffix { };
+
+struct UEG3 {};
 
 class CabacDecoder
 {
 public:
     CabacDecoder(int picInitQpMinus26, int sliceQpDelta, int cabacInitIdc, SliceType type);
-    int Decode(BitstreamReader& reader);
+
+    template<typename ...BinarizationMethods>
+    int Decode(BitstreamReader& reader, AeV<BinarizationMethods...>& field)
+    {
+
+    }
 private:
 
     struct CabacContext

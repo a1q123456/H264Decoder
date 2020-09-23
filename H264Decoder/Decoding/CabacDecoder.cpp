@@ -17,10 +17,6 @@ CabacDecoder::CabacDecoder(int picInitQpMinus26, int sliceQpDelta, int cabacInit
 
 }
 
-int CabacDecoder::Decode(BitstreamReader& reader)
-{
-
-}
 
 CabacDecoder::CabacContext::CabacContext(int picInitQpMinus26, int sliceQpDelta, int m, int n)
 {

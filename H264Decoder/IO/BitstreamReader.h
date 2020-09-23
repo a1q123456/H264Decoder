@@ -4,7 +4,17 @@
 using ByteStream = std::basic_iostream<Byte>;
 using ByteFileFstream = std::basic_fstream<Byte>;
 using BoolType = std::uint8_t;
-using AeV = std::uint8_t;
+
+template<typename ...BinarizationMethods>
+struct AeV
+{
+    using Type = int;
+
+    Type val;
+    AeV() = default;
+    AeV(int v) : val(v) {}
+};
+
 using CeV = std::uint8_t;
 
 class BitstreamReader
