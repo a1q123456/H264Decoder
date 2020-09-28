@@ -11,7 +11,6 @@
 #include <Data/NALU/EndOfStreamRbsp.h>
 #include <Data\NALU\FillerDataRbsp.h>
 #include <Data\NALU\SPSExtensionRbsp.h>
-#include <Data\NALU\SliceLayerExtensionRbsp.h>
 #include <Data\NALU\FillerDataRbsp.h>
 
 namespace NALUnitMapping
@@ -22,11 +21,6 @@ namespace NALUnitMapping
     using NALUCreator = AutoInjector::ObjectCreator<10, NaluTypes, EnumVal, T, DecodingContext&, BitstreamReader&, NALUnit&>;
 
     using Mapping = AutoInjector::TypePack<
-        //NALUCreator<NaluTypes::CodedSliceNonIDRPicture, CodedSliceNonIDRPictureRbsp>,
-        //NALUCreator<NaluTypes::CodedSliceDataPartitionA, CodedSliceDataPartitionARbsp>,
-        //NALUCreator<NaluTypes::CodedSliceDataPartitionB, CodedSliceDataPartitionBRbsp>,
-        //NALUCreator<NaluTypes::CodedSliceDataPartitionC, CodedSliceDataPartitionCRbsp>,
-        //NALUCreator<NaluTypes::CodedSliceIDRPicture, CodedSliceIDRPictureRbsp>,
         NALUCreator<NaluTypes::SEI, SEIRbsp>,
         NALUCreator<NaluTypes::SPS, SPSRbsp>,
         NALUCreator<NaluTypes::PPS, PPSRbsp>,
@@ -35,13 +29,8 @@ namespace NALUnitMapping
         NALUCreator<NaluTypes::EndOfStream, EndOfStreamRbsp>,
         NALUCreator<NaluTypes::FillerData, FillerDataRbsp>,
         NALUCreator<NaluTypes::SPSExtension, SPSExtensionRbsp>,
-        //NALUCreator<NaluTypes::PrefixNALUnit, PrefixNALUnitRbsp>,
         NALUCreator<NaluTypes::SubsetSPS, SubsetSPSRbsp>,
-        NALUCreator<NaluTypes::DPS, DPSRbsp>,
-        //NALUCreator<NaluTypes::PictureWithoutPartiting, PictureWithoutPartitingRbsp>,
-        NALUCreator<NaluTypes::SliceLayerExtension, SliceLayerExtensionRbsp>
-        //NALUCreator<NaluTypes::DepthOrThreeDAVCSliceLayerExtension, DepthOrThreeDAVCSliceLayerExtensionRbsp>,
-        //NALUCreator<NaluTypes::DepthOrTextureViewSliceLayerExtension, DepthOrTextureViewSliceLayerExtensionRbsp>
+        NALUCreator<NaluTypes::DPS, DPSRbsp>
     >;
 }
 
@@ -73,69 +62,80 @@ NALUnitReader::NALUnitReader(DecodingContext& context, ByteStream& bs, bool byte
 
 bool NALUnitReader::readNALUnit(NALUnit& out)
 {
-    readNALUnitStartCode();
-
-    auto nalUnit = readAnnexBNALPayload();
-
-    out.forbiddenZeroBit = readNALUnitForbiddenZeroBit(nalUnit);
-    out.nalRefIdc = readNALRefIdc(nalUnit);
-    out.nalUnitType = static_cast<NaluTypes>(readNALUnitType(nalUnit));
-    auto nalUnitHeaderBytes = 1;
-    auto iNalUnitType = static_cast<int>(out.nalUnitType);
-    if (iNalUnitType == 14 || iNalUnitType == 20 || iNalUnitType == 21)
+    try
     {
-        if (iNalUnitType != 21)
+        readNALUnitStartCode();
+
+        auto nalUnit = readAnnexBNALPayload();
+
+        out.forbiddenZeroBit = readNALUnitForbiddenZeroBit(nalUnit);
+        out.nalRefIdc = readNALRefIdc(nalUnit);
+        out.nalUnitType = static_cast<NaluTypes>(readNALUnitType(nalUnit));
+        auto nalUnitHeaderBytes = 1;
+        auto iNalUnitType = static_cast<int>(out.nalUnitType);
+        if (iNalUnitType == 14 || iNalUnitType == 20 || iNalUnitType == 21)
         {
-            out.svcExtensionFlag = nalUnit.readBits<std::uint8_t, 1>();
+            if (iNalUnitType != 21)
+            {
+                out.svcExtensionFlag = nalUnit.readBits<std::uint8_t, 1>();
+            }
+            else
+            {
+                out.avc3DExtensionFlag = nalUnit.readBits<std::uint8_t, 1>();
+            }
+            if (out.svcExtensionFlag)
+            {
+                out.nalUnitHeaderSvcExtension = NALUnitHeaderSvcExtension{ nalUnit };
+                nalUnitHeaderBytes += 3;
+            }
+            else if (out.avc3DExtensionFlag)
+            {
+                out.nalUnitHeader3DavcExtension = NALUnitHeader3DavcExtension{ nalUnit };
+                nalUnitHeaderBytes += 2;
+            }
+            else
+            {
+                out.nalUnitHeaderMvcExtension = NALUnitHeaderMvcExtension{ nalUnit };
+                nalUnitHeaderBytes += 3;
+            }
         }
-        else
+
+
+        std::size_t numBytesInRbsp = 0;
+        auto numBytesInNALunit = nalUnit.totalSize();
+        std::vector<Byte> rbsp;
+        rbsp.resize(numBytesInNALunit);
+        for (std::size_t i = nalUnitHeaderBytes; i < numBytesInNALunit; i++)
         {
-            out.avc3DExtensionFlag = nalUnit.readBits<std::uint8_t, 1>();
+            if (i + 2 < numBytesInNALunit && nalUnit.nextBits<std::uint32_t, 24>() == 0x000003)
+            {
+                rbsp[numBytesInRbsp++] = static_cast<Byte>(nalUnit.readBits<std::uint8_t, 8>());
+                rbsp[numBytesInRbsp++] = static_cast<Byte>(nalUnit.readBits<std::uint8_t, 8>());
+                i += 2;
+                // discard the emulation_prevention_three_byte
+                nalUnit.readBits<std::uint8_t, 8>();
+            }
+            else
+            {
+                rbsp[numBytesInRbsp++] = static_cast<Byte>(nalUnit.readBits<std::uint8_t, 8>());
+            }
         }
-        if (out.svcExtensionFlag)
+        assert(numBytesInRbsp <= numBytesInNALunit);
+        rbsp.resize(numBytesInRbsp);
+
+        BitstreamReader rbspReader(std::move(rbsp));
+        if (creator.map.find(out.nalUnitType) == std::end(creator.map))
         {
-            out.nalUnitHeaderSvcExtension = NALUnitHeaderSvcExtension{ nalUnit };
-            nalUnitHeaderBytes += 3;
+            return true;
         }
-        else if (out.avc3DExtensionFlag)
-        {
-            out.nalUnitHeader3DavcExtension = NALUnitHeader3DavcExtension{ nalUnit };
-            nalUnitHeaderBytes += 2;
-        }
-        else
-        {
-            out.nalUnitHeaderMvcExtension = NALUnitHeaderMvcExtension{ nalUnit };
-            nalUnitHeaderBytes += 3;
-        }
+        out.rbsp = creator.map.at(out.nalUnitType)(context, rbspReader, out);
+
+        return out.forbiddenZeroBit == 0;
     }
-
-
-    std::size_t numBytesInRbsp = 0;
-    auto numBytesInNALunit = nalUnit.totalSize();
-    std::vector<Byte> rbsp;
-    rbsp.resize(numBytesInNALunit);
-    for (std::size_t i = nalUnitHeaderBytes; i < numBytesInNALunit; i++)
+    catch (std::ios::failure)
     {
-        if (i + 2 < numBytesInNALunit && nalUnit.nextBits<std::uint32_t, 24>() == 0x000003)
-        {
-            rbsp[numBytesInRbsp++] = static_cast<Byte>(nalUnit.readBits<std::uint8_t, 8>());
-            rbsp[numBytesInRbsp++] = static_cast<Byte>(nalUnit.readBits<std::uint8_t, 8>());
-            i += 2;
-            // discard the emulation_prevention_three_byte
-            nalUnit.readBits<std::uint8_t, 8>();
-        }
-        else
-        {
-            rbsp[numBytesInRbsp++] = static_cast<Byte>(nalUnit.readBits<std::uint8_t, 8>());
-        }
+        return false;
     }
-    assert(numBytesInRbsp <= numBytesInNALunit);
-    rbsp.resize(numBytesInRbsp);
-
-    BitstreamReader rbspReader(std::move(rbsp));
-    out.rbsp = creator.map.at(out.nalUnitType)(context, rbspReader, out);
-
-    return out.forbiddenZeroBit == 0;
 }
 
 BitstreamReader NALUnitReader::readAnnexBNALPayload()

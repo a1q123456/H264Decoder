@@ -95,15 +95,6 @@ PPSRbsp::PPSRbsp(DecodingContext& context, BitstreamReader& reader, NALUnit&)
         case SliceGroupMapType::ForegroundWithLeftOver:
             mapUnitToSliceGroupMap = getForegroundWithLeftOverGroupMapType(context);
             break;
-        case SliceGroupMapType::BoxOut:
-            mapUnitToSliceGroupMap = getBoxOutMapType(context);
-            break;
-        case SliceGroupMapType::RasterScan:
-            mapUnitToSliceGroupMap = getRasterScanMapType(context);
-            break;
-        case SliceGroupMapType::Wipe:
-            getWipeMapType(context);
-            break;
         case SliceGroupMapType::Explicit:
             getExplicitMapType(context);
             break;
@@ -171,113 +162,6 @@ std::map<int, int> PPSRbsp::getForegroundWithLeftOverGroupMapType(DecodingContex
     return ret;
 }
 
-std::map<int, int> PPSRbsp::getBoxOutMapType(DecodingContext& context)
-{
-    std::map<int, int> ret;
-    auto picSizeInMapUnits = context.getPicSizeInMapUnits();
-    auto picWidthInMbs = context.getPicWidthInMbs();
-    auto picHeightInMapUnits = context.getPicHeightInMapUnits();
-
-    for (auto i = 0; i < picSizeInMapUnits; i++)
-    {
-        ret[i] = 1;
-    }
-
-    auto x = (picWidthInMbs - sliceGroupChangeDirectionFlag) / 2;
-    auto y = (picHeightInMapUnits - sliceGroupChangeDirectionFlag) / 2;
-
-    auto leftBound = x;
-    auto topBound = y;
-    auto rightBound = x;
-    auto bottomBound = y;
-    auto xDir = sliceGroupChangeDirectionFlag - 1;
-    auto yDir = (int)(sliceGroupChangeDirectionFlag);
-
-    auto sliceGroupChangeCycle = 0;
-    context.getSliceHeader([&](auto&& sliceHeader)
-        {
-            sliceGroupChangeCycle = sliceHeader.sliceGroupChangeCycle;
-        });
-    
-    auto mapUnitsInSliceGroup0 = context.getMapUnitsInSliceGroup0(sliceGroupChangeRateMinus1);
-    int mapUnitVacant = 0;
-
-    for (auto k = 0; k < mapUnitsInSliceGroup0; k += mapUnitVacant) {
-        mapUnitVacant = (ret[y * picWidthInMbs + x] == 1);
-        if (mapUnitVacant)
-            ret[y * picWidthInMbs + x] = 0 (8 - 20);
-        if (xDir == -1 && x == leftBound) {
-            leftBound = std::max(leftBound - 1, 0);
-            x = leftBound;
-            xDir = 0;
-            yDir = 2 * sliceGroupChangeDirectionFlag - 1;
-        }
-        else if (xDir == 1 && x == rightBound) {
-            rightBound = std::min(rightBound + 1, picWidthInMbs - 1);
-            x = rightBound;
-            xDir = 0;
-            yDir = 1 - 2 * sliceGroupChangeDirectionFlag;
-        }
-        else if (yDir == -1 && y == topBound) {
-            topBound = std::max(topBound - 1, 0);
-            y = topBound;
-            xDir = 1 - 2 * sliceGroupChangeDirectionFlag;
-            yDir = 0;
-        }
-        else if (yDir == 1 && y == bottomBound) {
-            bottomBound = std::min(bottomBound + 1, picHeightInMapUnits - 1);
-            y = bottomBound;
-            xDir = 2 * sliceGroupChangeDirectionFlag - 1;
-            yDir = 0;
-        }
-        else
-        {
-            x = x + xDir;
-            y = y + yDir;
-        }
-            
-    }
-    return ret;
-}
-
-std::map<int, int> PPSRbsp::getRasterScanMapType(DecodingContext& context)
-{
-    std::map<int, int> ret;
-    auto picSizeInMapUnits = context.getPicSizeInMapUnits();
-    auto picWidthInMbs = context.getPicWidthInMbs();
-
-    auto mapUnitsInSliceGroup0 = context.getMapUnitsInSliceGroup0(sliceGroupChangeRateMinus1);
-    auto sizeOfUpperLeftGroup = context.getSizeOfUpperLeftGroup(sliceGroupChangeDirectionFlag, sliceGroupChangeRateMinus1);
-
-    for (auto i = 0; i < picSizeInMapUnits; i++)
-        if (i < sizeOfUpperLeftGroup)
-            ret[i] = sliceGroupChangeDirectionFlag;
-        else
-            ret[i] = 1 - sliceGroupChangeDirectionFlag;
-
-    return ret;
-}
-
-std::map<int, int> PPSRbsp::getWipeMapType(DecodingContext& context)
-{
-    std::map<int, int> ret;
-    auto picSizeInMapUnits = context.getPicSizeInMapUnits();
-    auto picWidthInMbs = context.getPicWidthInMbs();
-    auto picHeightInMapUnits = context.getPicHeightInMapUnits();
-
-    auto sizeOfUpperLeftGroup = context.getSizeOfUpperLeftGroup(sliceGroupChangeDirectionFlag, sliceGroupChangeRateMinus1);
-
-    auto k = 0;
-    for (auto j = 0; j < picWidthInMbs; j++)
-        for (auto i = 0; i < picHeightInMapUnits; i++)
-            if (k++ < sizeOfUpperLeftGroup)
-                ret[i * picWidthInMbs + j] = sliceGroupChangeDirectionFlag;
-            else
-                ret[i * picWidthInMbs + j] = 1 - sliceGroupChangeDirectionFlag;
-
-    return ret;
-}
-
 std::map<int, int> PPSRbsp::getExplicitMapType(DecodingContext& context)
 {
     std::map<int, int> ret;
@@ -289,5 +173,5 @@ std::map<int, int> PPSRbsp::getExplicitMapType(DecodingContext& context)
     {
         ret[i] = sliceGroupId[i];
     }
-
+    return ret;
 }

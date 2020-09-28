@@ -5,11 +5,8 @@
 #include <Data\NALU\DPSContext.h>
 #include <Data\NALU\DPSRbsp.h>
 #include <Data\NALU\InterpretationOfPicStruct.h>
-#include <Data\NALU\SliceHeader.h>
 #include <Data\NALU\CurrentPictureContext.h>
 #include <Data\NALU\SubsetSPSRbsp.h>
-#include <Data\NALU\SliceHeaderInScalableExtension.h>
-#include <Data\NALU\SliceHeaderIn3DAVCExtension.h>
 #include <Data/SliceType.h>
 
 
@@ -17,8 +14,6 @@ constexpr bool getIdrPicFlag(NaluTypes nalType)
 {
     return nalType == NaluTypes::CodedSliceIDRPicture;
 }
-
-using SliceHeaderType = std::variant<SliceHeader, SliceHeaderInScalableExtension, SliceHeaderIn3DAVCExtension, nullptr_t>;
 
 struct DecodingContext
 {
@@ -36,67 +31,6 @@ struct DecodingContext
 
     std::uint8_t numClockTs = 0;
 
-    static inline std::vector<InterpretationOfPicStruct> interpreatationOfPicStruct
-    {
-        { 0, "(progressive) frame", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return !sh.fieldPicFlag && cpc.bottomFieldOrderCnt == cpc.topFieldOrderCnt; }, 1 },
-        { 1, "top field", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return sh.fieldPicFlag && !sh.bottomFieldFlag; }, 1 },
-        { 2, "bottom field", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return sh.fieldPicFlag && sh.bottomFieldFlag; }, 1 },
-        { 3, "top field, bottom field, in that order", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return !sh.fieldPicFlag && cpc.bottomFieldOrderCnt >= cpc.topFieldOrderCnt; }, 2 },
-        { 4, "bottom field, top field, in that order", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return !sh.fieldPicFlag && cpc.bottomFieldOrderCnt <= cpc.topFieldOrderCnt; }, 2 },
-        { 5, "top field, bottom field, top field repeated, in that order", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return !sh.fieldPicFlag && cpc.bottomFieldOrderCnt >= cpc.topFieldOrderCnt; }, 3 },
-        { 6, "bottom field, top field, bottom field repeated, in that order", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return !sh.fieldPicFlag && cpc.bottomFieldOrderCnt <= cpc.topFieldOrderCnt; }, 3 },
-        { 7, "frame doubling", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return vui.timingInfoPresentFlag && vui.timingInfo.vuiFixedFrameRateFlag && !sh.fieldPicFlag && cpc.bottomFieldOrderCnt == cpc.topFieldOrderCnt; }, 2 },
-        { 8, "frame tripling", [](const SliceHeader& sh, const CurrentPictureContext& cpc, const VuiParameters& vui) { return vui.timingInfoPresentFlag && vui.timingInfo.vuiFixedFrameRateFlag && !sh.fieldPicFlag && cpc.bottomFieldOrderCnt == cpc.topFieldOrderCnt; }, 3 },
-    };
-
-
-    std::uint64_t nextMbAddress(std::uint64_t n)
-    {
-        auto i = n + 1;
-        auto&& mbToSliceGroupMap = currentPPS().mapUnitToSliceGroupMap;
-        while (i < getPicSizeInMbs() && mbToSliceGroupMap[i] != mbToSliceGroupMap[n])
-        {
-            i++;
-        }
-        return i;
-
-    }
-
-    template<typename TCb>
-    void getSliceHeader(TCb&& cb)
-    {
-        auto&& sliceHeader = currentSliceHeader();
-        if (sliceHeaderIsSVC())
-        {
-            auto&& header = std::get<SliceHeaderInScalableExtension>(sliceHeader);
-            cb(header);
-        }
-        else if (sliceHeaderIs3DAVC())
-        {
-            auto&& header = std::get<SliceHeaderIn3DAVCExtension>(sliceHeader);
-            cb(header);
-        }
-        else if (hasSliceHeader())
-        {
-            auto&& header = std::get<SliceHeader>(sliceHeader);
-            cb(header);
-        }
-        else
-        {
-            throw std::runtime_error("no slice header");
-        }
-    }
-
-    bool getMbaffFrameFlag()
-    {
-        bool fieldPicFlag = false;
-        getSliceHeader([&](auto header)
-            {
-                fieldPicFlag = header.fieldPicFlag;
-            });
-        return (currentSPS().mbAdaptiveFrameFieldFlag && !fieldPicFlag);
-    }
-
     int getPicWidthInMbs()
     {
         return currentSPS().picWidthInMbsMinus1 + 1;
@@ -112,62 +46,10 @@ struct DecodingContext
         return (2 - currentSPS().frameMbsOnlyFlag) * getPicHeightInMapUnits();
     }
 
-    int getPicHeightInMbs()
-    {
-        int fieldPicFlag = 0;
-        getSliceHeader([&](auto&& header)
-            {
-                fieldPicFlag = header.fieldPicFlag;
-            });
-
-        return getFrameHeightInMbs() / (1 + fieldPicFlag);
-    }
-
-    int getMapUnitsInSliceGroup0(int sliceGroupChangeRateMinus1)
-    {
-        auto sliceGroupChangeCycle = 0;
-        getSliceHeader([&](auto&& sliceHeader)
-            {
-                sliceGroupChangeCycle = sliceHeader.sliceGroupChangeCycle;
-            });
-
-        return std::min(sliceGroupChangeCycle * (sliceGroupChangeRateMinus1 + 1), getPicSizeInMapUnits());
-    }
-
-    int getSizeOfUpperLeftGroup(bool sliceGroupChangeDirectionFlag, int sliceGroupChangeRateMinus1)
-    {
-        auto mapUnitsInSliceGroup0 = getMapUnitsInSliceGroup0(sliceGroupChangeRateMinus1);
-        return (sliceGroupChangeDirectionFlag ? (getPicSizeInMapUnits() - mapUnitsInSliceGroup0) : mapUnitsInSliceGroup0);
-    }
-
-    int getPicSizeInMbs()
-    {
-        return getPicWidthInMbs() * getPicHeightInMbs();
-    }
 
     int getPicSizeInMapUnits()
     {
         return getPicHeightInMapUnits() * getPicWidthInMbs();
-    }
-
-    bool sliceHeaderIsSVC()
-    {
-        return sliceHeader.index() == 1;
-    }
-
-    bool sliceHeaderIs3DAVC()
-    {
-        return sliceHeader.index() == 2;
-    }
-
-    bool hasSliceHeader()
-    {
-        return sliceHeader.index() != 3 && sliceHeader.index() != std::variant_npos;
-    }
-
-    SliceHeaderType& currentSliceHeader()
-    {
-        return sliceHeader;
     }
 
     PPSRbsp& currentPPS()
@@ -353,7 +235,6 @@ private:
     int activeSPSId = -1;
     int activeDPSId = -1;
 
-    SliceHeaderType sliceHeader;
 };
 
 

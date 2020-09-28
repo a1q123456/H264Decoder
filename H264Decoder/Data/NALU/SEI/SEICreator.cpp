@@ -10,7 +10,6 @@
 #include <Data\NALU\SEI\UserDataRegisteredItuTT35.h>
 #include <Data\NALU\SEI\UserDataUnregistered.h>
 #include <Data\NALU\SEI\RecoveryPoint.h>
-#include <Data\NALU\SEI\DecRefPicMarkingRepetition.h>
 #include <Data\NALU\SEI\SparePic.h>
 #include <Data\NALU\SEI\SceneInfo.h>
 #include <Data\NALU\SEI\SubSeqInfo.h>
@@ -92,7 +91,6 @@ namespace SEITypeMapping
         SEICreator<SEIType::UserDataRegisteredItuTT35, UserDataRegisteredItuTT35>,
         SEICreator<SEIType::UserDataUnregistered, UserDataUnregistered>,
         SEICreator<SEIType::RecoveryPoint, RecoveryPoint>,
-        SEICreator<SEIType::DecRefPicMarkingRepetition, DecRefPicMarkingRepetition>,
         SEICreator<SEIType::SparePic, SparePic>,
         SEICreator<SEIType::SceneInfo, SceneInfo>,
         SEICreator<SEIType::SubSeqInfo, SubSeqInfo>,

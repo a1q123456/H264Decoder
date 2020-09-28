@@ -44,59 +44,6 @@ struct PicTiming
             cpbRemovalDelay = reader.readBits<std::uint16_t>(context.currentSPS().vuiParameters.hrdParameters.cpbRemovalDelayLengthMinus1 + 1);
             dpbOutputDelay = reader.readBits<std::uint16_t>(context.currentSPS().vuiParameters.hrdParameters.dpbOutputDelayLengthMinus1 + 1);
         }
-        if (context.currentSPS().vuiParameters.picStructPresentFlag)
-        {
-            picStruct = reader.readBits<std::uint8_t, 4>();
-            auto iter = std::find_if(std::begin(context.interpreatationOfPicStruct), std::end(context.interpreatationOfPicStruct), [=](const InterpretationOfPicStruct& ips) { return ips.value == picStruct; });
-            if (iter == std::end(context.interpreatationOfPicStruct))
-            {
-                throw std::runtime_error("failed to decoding timing info");
-            }
-            for (auto i = 0; i < iter->numClockTs; i++)
-            {
-                ClockTS cts;
-                cts.clockTimestampFlag = reader.readBits<std::uint8_t, 1>();
-                if (cts.clockTimestampFlag)
-                {
-                    cts.ctType = reader.readBits<std::uint8_t, 2>();
-                    cts.nuitFieldBasedFlag = reader.readBits<std::uint8_t, 1>();
-                    cts.countingType = reader.readBits<std::uint8_t, 5>();
-                    cts.fullTimestampFlag = reader.readBits<std::uint8_t, 1>();
-                    cts.discontinuityFlag = reader.readBits<std::uint8_t, 1>();
-                    cts.cntDroppedFlag = reader.readBits<std::uint8_t, 1>();
-                    cts.nFrames = reader.readBits<std::uint8_t, 8>();
-                    if (cts.fullTimestampFlag)
-                    {
-                        cts.secondsValue = reader.readBits<std::uint8_t, 6>();
-                        cts.minutesValue = reader.readBits<std::uint8_t, 6>();
-                        cts.hoursValue = reader.readBits<std::uint8_t, 5>();
-                    }
-                    else
-                    {
-                        cts.secondsFlag = reader.readBits<std::uint8_t, 1>();
-                        if (cts.secondsFlag)
-                        {
-                            cts.secondsValue = reader.readBits<std::uint8_t, 6>();
-                            cts.minutesFlag = reader.readBits<std::uint8_t, 1>();
-                            if (cts.minutesFlag)
-                            {
-                                cts.minutesValue = reader.readBits<std::uint8_t, 6>();
-                                cts.hoursFlag = reader.readBits<std::uint8_t, 1>();
-                                if (cts.hoursFlag)
-                                {
-                                    cts.hoursValue = reader.readBits<std::uint8_t, 5>();
-                                }
-                            }
-                        }
-                    }
-                    if (context.currentSPS().vuiParameters.hrdParameters.timeOffsetLength > 0)
-                    {
-                        cts.timeOffset = reader.readBits<std::int16_t>(context.currentSPS().vuiParameters.hrdParameters.timeOffsetLength);
-                    }
-                }
-                clockTSs.emplace_back(cts);
-            }
-        }
     }
 
 };

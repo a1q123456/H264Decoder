@@ -62,9 +62,6 @@ private:
     std::map<int, int> getInterleavedGroupMapType(DecodingContext& context);
     std::map<int, int> getDispersedGroupMapType(DecodingContext& context);
     std::map<int, int> getForegroundWithLeftOverGroupMapType(DecodingContext& context);
-    std::map<int, int> getBoxOutMapType(DecodingContext& context);
-    std::map<int, int> getRasterScanMapType(DecodingContext& context);
-    std::map<int, int> getWipeMapType(DecodingContext& context);
     std::map<int, int> getExplicitMapType(DecodingContext& context);
 };
 
