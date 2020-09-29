@@ -7,15 +7,17 @@
 
 constexpr const int NALU_START_CODE_LEN = 3;
 
-class NALUnitReader
+class AVCReader
 {
 public:
-    explicit NALUnitReader(DecodingContext& context, ByteStream& bs, bool byteAligned);
+    explicit AVCReader(DecodingContext& context, ByteStream& bs, bool byteAligned);
     bool readNALUnit(NALUnit& out);
+    const std::vector<NALUnit>& getSPS() const noexcept;
+    const std::vector<NALUnit>& getPPS() const noexcept;
 private:
-    BitstreamReader readAnnexBNALPayload();
+    BitstreamReader readAVCPayload(std::uint32_t sz);
 
-    void readNALUnitStartCode();
+    std::uint32_t readNALUnitLength();
     std::uint8_t readNALUnitForbiddenZeroBit(BitstreamReader& br);
     std::uint8_t readNALRefIdc(BitstreamReader& br);
     std::uint8_t readNALUnitType(BitstreamReader& br);
@@ -25,7 +27,8 @@ private:
 
     DecodingContext& context;
     ByteStream& bs;
-    BitstreamReader annexBReader;
-    bool byteAligned = true;
+    BitstreamReader bsReader;
+    std::vector<NALUnit> sps;
+    std::vector<NALUnit> pps;
 };
 

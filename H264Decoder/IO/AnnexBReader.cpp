@@ -1,57 +1,13 @@
 #include <pch.h>
 #include <Data/Byte.h>
-#include "NALUnitReader.h"
-#include <Utils/AutoInjector.h>
-#include <Data/NALU/SPSRbsp.h>
-#include <Data/NALU/PPSRbsp.h>
-#include <Data/NALU/SEIRbsp.h>
-#include <Data/NALU/DPSRbsp.h>
-#include <Data/NALU/AUDRbsp.h>
-#include <Data/NALU/EndOfSequenceRbsp.h>
-#include <Data/NALU/EndOfStreamRbsp.h>
-#include <Data\NALU\FillerDataRbsp.h>
-#include <Data\NALU\SPSExtensionRbsp.h>
-#include <Data\NALU\FillerDataRbsp.h>
-
-namespace NALUnitMapping
-{
-    constexpr auto NumberProbe = 10;
-
-    template<NaluTypes EnumVal, typename T>
-    using NALUCreator = AutoInjector::ObjectCreator<10, NaluTypes, EnumVal, T, DecodingContext&, BitstreamReader&, NALUnit&>;
-
-    using Mapping = AutoInjector::TypePack<
-        NALUCreator<NaluTypes::SEI, SEIRbsp>,
-        NALUCreator<NaluTypes::SPS, SPSRbsp>,
-        NALUCreator<NaluTypes::PPS, PPSRbsp>,
-        NALUCreator<NaluTypes::AUD, AUDRbsp>,
-        NALUCreator<NaluTypes::EndOfSequence, EndOfSequenceRbsp>,
-        NALUCreator<NaluTypes::EndOfStream, EndOfStreamRbsp>,
-        NALUCreator<NaluTypes::FillerData, FillerDataRbsp>,
-        NALUCreator<NaluTypes::SPSExtension, SPSExtensionRbsp>,
-        NALUCreator<NaluTypes::SubsetSPS, SubsetSPSRbsp>,
-        NALUCreator<NaluTypes::DPS, DPSRbsp>
-    >;
-}
-
-using RbspMap = std::unordered_map<NaluTypes, std::function<std::shared_ptr<std::uint8_t>(DecodingContext&, BitstreamReader&, NALUnit&)>>;
+#include "AnnexBReader.h"
+#include "NALUMapping.h"
+#include <Data/NALU/NALUnitHeader3DavcExtension.h>
+#include <Data/NALU/NALUnitHeaderSvcExtension.h>
+#include <Data/NALU/NALUnitHeaderMvcExtension.h>
 
 
-struct RbspCreator
-{
-    RbspMap map;
-
-    RbspCreator()
-    {
-        using namespace NALUnitMapping;
-
-        Mapping::RegisterTypes(map);
-    }
-};
-
-RbspCreator creator;
-
-NALUnitReader::NALUnitReader(DecodingContext& context, ByteStream& bs, bool byteAligned) :
+AnnexBReader::AnnexBReader(DecodingContext& context, ByteStream& bs, bool byteAligned) :
     bs(bs),
     context(context),
     annexBReader(bs),
@@ -60,7 +16,7 @@ NALUnitReader::NALUnitReader(DecodingContext& context, ByteStream& bs, bool byte
 
 }
 
-bool NALUnitReader::readNALUnit(NALUnit& out)
+bool AnnexBReader::readNALUnit(NALUnit& out)
 {
     try
     {
@@ -138,7 +94,7 @@ bool NALUnitReader::readNALUnit(NALUnit& out)
     }
 }
 
-BitstreamReader NALUnitReader::readAnnexBNALPayload()
+BitstreamReader AnnexBReader::readAnnexBNALPayload()
 {
     std::vector<Byte> data;
     data.reserve(300);
@@ -168,7 +124,7 @@ BitstreamReader NALUnitReader::readAnnexBNALPayload()
     return BitstreamReader(std::move(data));
 }
 
-void NALUnitReader::readNALUnitStartCode()
+void AnnexBReader::readNALUnitStartCode()
 {
     // make decoder byte-aligned
     while (!byteAligned)
@@ -222,17 +178,17 @@ void NALUnitReader::readNALUnitStartCode()
     readNALUnitStartCode();
 }
 
-std::uint8_t NALUnitReader::readNALUnitForbiddenZeroBit(BitstreamReader& br)
+std::uint8_t AnnexBReader::readNALUnitForbiddenZeroBit(BitstreamReader& br)
 {
     return br.readBits<std::uint8_t, 1>();
 }
 
-std::uint8_t NALUnitReader::readNALRefIdc(BitstreamReader& br)
+std::uint8_t AnnexBReader::readNALRefIdc(BitstreamReader& br)
 {
     return br.readBits<std::uint8_t, 2>();
 }
 
-std::uint8_t NALUnitReader::readNALUnitType(BitstreamReader& br)
+std::uint8_t AnnexBReader::readNALUnitType(BitstreamReader& br)
 {
     return br.readBits<std::uint8_t, 5>();
 }
