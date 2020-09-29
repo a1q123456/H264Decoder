@@ -13,6 +13,7 @@ public:
     explicit AVCReader(DecodingContext& context, ByteStream& bs, bool byteAligned);
     bool readNALUnit(NALUnit& out);
     const std::vector<NALUnit>& getSPS() const noexcept;
+    const std::vector<NALUnit>& getSPSExt() const noexcept;
     const std::vector<NALUnit>& getPPS() const noexcept;
 private:
     BitstreamReader readAVCPayload(std::uint32_t sz);
@@ -30,5 +31,6 @@ private:
     BitstreamReader bsReader;
     std::vector<NALUnit> sps;
     std::vector<NALUnit> pps;
+    std::vector<NALUnit> spsExt;
 };
 

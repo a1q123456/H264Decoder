@@ -13,7 +13,7 @@ AVCReader::AVCReader(DecodingContext& context, ByteStream& bs, bool byteAligned)
     bsReader(bs)
 {
     auto version = bsReader.readBits<std::uint8_t, 8>();
-    auto profile = bsReader.readBits<std::uint8_t, 8>();
+    auto profile_idc = bsReader.readBits<std::uint8_t, 8>();
     auto profileCompatbility = bsReader.readBits<std::uint8_t, 8>();
     auto level = bsReader.readBits<std::uint8_t, 8>();
     auto reserved = bsReader.readBits<std::uint8_t, 6>();
@@ -33,6 +33,23 @@ AVCReader::AVCReader(DecodingContext& context, ByteStream& bs, bool byteAligned)
         NALUnit nalu;
         readNALUnit(nalu);
         pps.emplace_back(std::move(nalu));
+    }
+    if (profile_idc == 100 || profile_idc == 110 ||
+        profile_idc == 122 || profile_idc == 144)
+    {
+        auto reserved = bsReader.readBits<std::uint8_t, 6>();
+        auto chromaFormat = bsReader.readBits<int, 2>();
+        auto reserved = bsReader.readBits<std::uint8_t, 5>();
+        int bitDepthLumaMinus8 = bsReader.readBits<int, 3>();
+        auto reserved2 = bsReader.readBits<std::uint8_t, 5>();
+        int bitDepthChromaMinus8 = bsReader.readBits<int, 3>();
+        int numOfSequenceParameterSetExt = bsReader.readBits<int, 8>();
+        for (auto i = 0; i < numOfSequenceParameterSetExt; i++) 
+        {
+            NALUnit nalu;
+            readNALUnit(nalu);
+            spsExt.emplace_back(std::move(nalu));
+        }
     }
 }
 
@@ -117,6 +134,11 @@ bool AVCReader::readNALUnit(NALUnit& out)
 const std::vector<NALUnit>& AVCReader::getSPS() const noexcept
 {
     return sps;
+}
+
+const std::vector<NALUnit>& AVCReader::getSPSExt() const noexcept
+{
+    return spsExt;
 }
 
 const std::vector<NALUnit>& AVCReader::getPPS() const noexcept
