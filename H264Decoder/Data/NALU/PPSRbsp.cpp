@@ -60,7 +60,7 @@ PPSRbsp::PPSRbsp(DecodingContext& context, BitstreamReader& reader, NALUnit&)
 
         if (picScalingMatrixPresentFlag)
         {
-            for (auto i = 0; i < 6 + ((context.currentSPS().chromaFormatIdc != 3) ? 2 : 6) * transform8x8ModeFlag; i++)
+            for (auto i = 0; i < 6 + ((context.currentSPS().chromaFormatIdc != ChromaFormat::YUV444) ? 2 : 6) * transform8x8ModeFlag; i++)
             {
                 auto&& list = i < 6 ? scalingList4x4.emplace_back() : scalingList8x8.emplace_back();
                 auto present = reader.readBits<std::uint8_t, 1>();

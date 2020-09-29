@@ -3,6 +3,7 @@
 #include <Data/NALU/FrameCropping.h>
 #include <Data\NALU\VuiParameters.h>
 #include <Data\NALU\ScalingList.h>
+#include <Data/NALU/ChromaFormat.h>
 
 struct SPSData
 {
@@ -21,7 +22,7 @@ struct SPSData
 
     std::uint8_t levelIdc = 0;
     std::uint16_t spsId = 0;
-    std::uint16_t chromaFormatIdc = 0;
+    ChromaFormat chromaFormatIdc = ChromaFormat::YUV420;
     bool separateColourPlaneFlag = false;
     std::uint16_t bitDepthLumaMinus8 = 0;
     std::uint16_t bitDepthChromaMinus8 = 0;
@@ -36,8 +37,8 @@ struct SPSData
     std::uint16_t log2MaxPicOrderCntLsbMinus4 = 0;
 
     std::uint8_t deltaPicOrderAlwaysZeroFlag = 0;
-    std::int16_t offsetForNonRefPic;
-    std::int16_t offsetForTopToBottomField;
+    std::int16_t offsetForNonRefPic = 0;
+    std::int16_t offsetForTopToBottomField = 0;
     std::uint16_t numRefFramesInPicOrderCntCycle = 0;
     std::vector<std::int16_t> offsetForRefFrame;
 
@@ -81,20 +82,20 @@ struct SPSData
             profileIdc == 128 || profileIdc == 138 || profileIdc == 139 ||
             profileIdc == 134)
         {
-            chromaFormatIdc = rbspReader.readExpoGlomb();
-            if (chromaFormatIdc == 3)
+            chromaFormatIdc = static_cast<ChromaFormat>(rbspReader.readExpoGlomb());
+            if (chromaFormatIdc == ChromaFormat::YUV444)
             {
                 separateColourPlaneFlag = rbspReader.readBits<std::uint8_t, 1>();
             }
 
-            chromaArrayType = !separateColourPlaneFlag ? chromaFormatIdc : 0;
+            chromaArrayType = !separateColourPlaneFlag ? static_cast<int>(chromaFormatIdc) : 0;
             bitDepthLumaMinus8 = rbspReader.readExpoGlomb();
             bitDepthChromaMinus8 = rbspReader.readExpoGlomb();
             qpprimeYZeroTransformBypassFlag = rbspReader.readBits<std::uint8_t, 1>();
             seqScalingMatrixPresentFlag = rbspReader.readBits<std::uint8_t, 1>();
             if (seqScalingMatrixPresentFlag)
             {
-                for (auto i = 0; i < ((chromaFormatIdc != 3) ? 8 : 12); i++)
+                for (auto i = 0; i < ((chromaFormatIdc != ChromaFormat::YUV444) ? 8 : 12); i++)
                 {
                     auto&& list = i < 6 ? scalingList4x4.emplace_back() : scalingList8x8.emplace_back();
                     auto present = rbspReader.readBits<std::uint8_t, 1>();
