@@ -44,12 +44,22 @@ public:
         backupByteBuffer = byteBuffer;
         backupPos = pos;
         backupNextBitsBufferIndex = nextBitsBufferIndex;
-
-        auto ret = internalReadBits(N, true, false);
-
+        std::uint64_t ret;
+        try
+        {
+            ret = internalReadBits(N, true, false);
+        }
+        catch (...)
+        {
+            byteBuffer = backupByteBuffer;
+            pos = backupPos;
+            nextBitsBufferIndex = backupNextBitsBufferIndex;
+            throw;
+        }
         byteBuffer = backupByteBuffer;
         pos = backupPos;
         nextBitsBufferIndex = backupNextBitsBufferIndex;
+        
 
         return static_cast<T>(ret);
     }

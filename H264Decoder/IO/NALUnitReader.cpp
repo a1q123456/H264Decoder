@@ -146,12 +146,24 @@ BitstreamReader NALUnitReader::readAnnexBNALPayload()
     while (true)
     {
 
-        auto next3Bytes = annexBReader.nextBits<std::uint32_t, 24>();
-        if (next3Bytes == 0 || next3Bytes == 1)
+        try
         {
+            auto next3Bytes = annexBReader.nextBits<std::uint32_t, 24>();
+            if (next3Bytes == 0 || next3Bytes == 1)
+            {
+                break;
+            }
+            data.push_back(annexBReader.readBits<std::uint8_t, 8>());
+        }
+        catch (std::ios::failure)
+        {
+            while (annexBReader.moreData())
+            {
+                data.push_back(annexBReader.readBits<std::uint8_t, 8>());
+            }
             break;
         }
-        data.push_back(annexBReader.readBits<std::uint8_t, 8>());
+
     }
     return BitstreamReader(std::move(data));
 }
