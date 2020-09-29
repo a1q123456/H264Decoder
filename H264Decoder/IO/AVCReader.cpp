@@ -12,14 +12,14 @@ AVCReader::AVCReader(DecodingContext& context, ByteStream& bs, bool byteAligned)
     context(context),
     bsReader(bs)
 {
-    auto version = bsReader.readBits<std::uint8_t, 8>();
-    auto profile_idc = bsReader.readBits<std::uint8_t, 8>();
-    auto profileCompatbility = bsReader.readBits<std::uint8_t, 8>();
-    auto level = bsReader.readBits<std::uint8_t, 8>();
+    version = bsReader.readBits<std::uint8_t, 8>();
+    profileIdc = bsReader.readBits<std::uint8_t, 8>();
+    profileCompatbility = bsReader.readBits<std::uint8_t, 8>();
+    level = bsReader.readBits<std::uint8_t, 8>();
     auto reserved = bsReader.readBits<std::uint8_t, 6>();
     auto lengthSizeMinusOne = bsReader.readBits<std::uint8_t, 2>();
     auto reserved2 = bsReader.readBits<std::uint8_t, 3>();
-    auto numSps = bsReader.readBits<std::uint8_t, 5>();
+    numSps = bsReader.readBits<std::uint8_t, 5>();
     for (auto i = 0; i < numSps; i++)
     {
         NALUnit nalu;
@@ -34,14 +34,14 @@ AVCReader::AVCReader(DecodingContext& context, ByteStream& bs, bool byteAligned)
         readNALUnit(nalu);
         pps.emplace_back(std::move(nalu));
     }
-    if (profile_idc == 100 || profile_idc == 110 ||
-        profile_idc == 122 || profile_idc == 144)
+    if (profileIdc == 100 || profileIdc == 110 ||
+        profileIdc == 122 || profileIdc == 144)
     {
         auto reserved = bsReader.readBits<std::uint8_t, 6>();
         auto chromaFormat = bsReader.readBits<int, 2>();
-        auto reserved = bsReader.readBits<std::uint8_t, 5>();
+        auto reserved3 = bsReader.readBits<std::uint8_t, 5>();
         int bitDepthLumaMinus8 = bsReader.readBits<int, 3>();
-        auto reserved2 = bsReader.readBits<std::uint8_t, 5>();
+        auto reserved4 = bsReader.readBits<std::uint8_t, 5>();
         int bitDepthChromaMinus8 = bsReader.readBits<int, 3>();
         int numOfSequenceParameterSetExt = bsReader.readBits<int, 8>();
         for (auto i = 0; i < numOfSequenceParameterSetExt; i++) 
@@ -51,6 +51,7 @@ AVCReader::AVCReader(DecodingContext& context, ByteStream& bs, bool byteAligned)
             spsExt.emplace_back(std::move(nalu));
         }
     }
+    this->lengthSizeMinusOne = lengthSizeMinusOne;
 }
 
 bool AVCReader::readNALUnit(NALUnit& out)
@@ -161,7 +162,7 @@ BitstreamReader AVCReader::readAVCPayload(std::uint32_t sz)
 
 std::uint32_t AVCReader::readNALUnitLength()
 {
-    return bsReader.readBits<std::uint32_t, 16>();
+    return bsReader.readBits<std::uint32_t>((lengthSizeMinusOne + 1) * 8);
 }
 
 std::uint8_t AVCReader::readNALUnitForbiddenZeroBit(BitstreamReader& br)

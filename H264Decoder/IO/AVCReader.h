@@ -25,6 +25,14 @@ private:
 
 
 private:
+    int version;
+    int profileIdc;
+    int profileCompatbility;
+    int level;
+    int reserved;
+    int lengthSizeMinusOne = 1;
+    int numSps;
+    int numPps;
 
     DecodingContext& context;
     ByteStream& bs;
